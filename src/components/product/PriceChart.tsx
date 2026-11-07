@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, type PointerEvent } from "react";
+import { useId, useMemo, useState, type PointerEvent } from "react";
 import { formatPrice, formatShortDate } from "@/lib/format";
 import type { PricePoint } from "@/types";
 
@@ -21,6 +21,8 @@ export function PriceChart({
   history30: PricePoint[];
   history90: PricePoint[];
 }) {
+  // Colons from useId are removed so the id is safe inside url(#...).
+  const fillId = `pulse-${useId().replace(/:/g, "")}`;
   const [range, setRange] = useState<Range>(90);
   const [active, setActive] = useState<number | null>(null);
   const data = range === 30 ? history30 : history90;
@@ -111,7 +113,7 @@ export function PriceChart({
         onPointerLeave={() => setActive(null)}
       >
         <defs>
-          <linearGradient id="pulse-fill" x1="0" y1="0" x2="0" y2="1">
+          <linearGradient id={fillId} x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="var(--accent)" stopOpacity="0.28" />
             <stop offset="100%" stopColor="var(--accent)" stopOpacity="0" />
           </linearGradient>
@@ -140,7 +142,7 @@ export function PriceChart({
         <path
           key={`area-${range}`}
           d={geo.area}
-          fill="url(#pulse-fill)"
+          fill={`url(#${fillId})`}
           className="animate-fade-up"
           style={{ "--d": "500ms" } as React.CSSProperties}
         />

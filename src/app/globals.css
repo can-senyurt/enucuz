@@ -118,16 +118,6 @@ body {
     transform: none;
   }
 }
-@keyframes page-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
 @keyframes float {
   0%,
   100% {
@@ -162,11 +152,6 @@ body {
 .animate-fade-up {
   animation: fade-up 0.8s cubic-bezier(0.22, 1, 0.36, 1) backwards;
   animation-delay: var(--d, 0ms);
-}
-.animate-page-in {
-  /* "backwards" (not "both"): no transform may linger after the animation, or
-     position:fixed descendants (buy bar, toast) would anchor to this wrapper. */
-  animation: page-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
 .animate-float {
   animation: float 7s ease-in-out infinite;
@@ -224,6 +209,35 @@ input[type="search"]::-webkit-search-cancel-button,
 input[type="search"]::-webkit-search-decoration {
   -webkit-appearance: none;
   appearance: none;
+}
+
+/* Hero backdrop: two soft radial washes. Pure gradients (no blur filters, masks
+   or animation), because those made iOS Safari paint boxes while loading. */
+.hero-bg {
+  background:
+    radial-gradient(
+      58rem 26rem at 50% -7rem,
+      color-mix(in srgb, var(--accent) 15%, transparent),
+      transparent 72%
+    ),
+    radial-gradient(
+      28rem 20rem at 105% 11rem,
+      color-mix(in srgb, var(--warn) 11%, transparent),
+      transparent 72%
+    );
+}
+:root[data-theme="dark"] .hero-bg {
+  background:
+    radial-gradient(
+      58rem 26rem at 50% -7rem,
+      color-mix(in srgb, var(--accent) 9%, transparent),
+      transparent 72%
+    ),
+    radial-gradient(
+      28rem 20rem at 105% 11rem,
+      color-mix(in srgb, var(--warn) 6%, transparent),
+      transparent 72%
+    );
 }
 
 /* Accent gradient for one highlighted word in a headline. */

@@ -1,30 +1,24 @@
 import Link from "next/link";
-import {
-  ArrowRight,
-  Baby,
-  Footprints,
-  PersonStanding,
-  Shirt,
-  Watch,
-  type LucideIcon,
-} from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { getRepository } from "@/data/repository";
 import { siteConfig } from "@/lib/config";
 import { formatPercent } from "@/lib/format";
-import type { DealLabel, DealScoreResult } from "@/types";
+import type { DealLabel, DealScoreResult, ImageKind } from "@/types";
 import { ProductCard } from "@/components/product/ProductCard";
 import { ProductGrid } from "@/components/product/ProductGrid";
 import { DealRing } from "@/components/ui/DealRing";
+import { ProductImage } from "@/components/ui/ProductImage";
 import { Reveal } from "@/components/ui/Reveal";
 import { SearchBar } from "@/components/ui/SearchBar";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 
-const CATEGORY_ICONS: Record<string, LucideIcon> = {
-  kadin: Shirt,
-  erkek: PersonStanding,
-  cocuk: Baby,
-  ayakkabi: Footprints,
-  aksesuar: Watch,
+/** Illustration + colour used for each top-level category tile. */
+const CATEGORY_ART: Record<string, { kind: ImageKind; color: string }> = {
+  kadin: { kind: "dress", color: "Bordo" },
+  erkek: { kind: "jacket", color: "Lacivert" },
+  cocuk: { kind: "kids", color: "Sarı" },
+  ayakkabi: { kind: "sneaker", color: "Mavi" },
+  aksesuar: { kind: "bag", color: "Kahverengi" },
 };
 
 /** Illustrative scores for the "how it works" section (not real products). */
@@ -84,68 +78,52 @@ export default async function Home() {
   return (
     <>
       {/* ---------- Hero ---------- */}
-      <section className="relative isolate overflow-hidden">
-        {/* Soft ambient glow behind the headline */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 -z-10 [mask-image:linear-gradient(to_bottom,#000_55%,transparent)]"
-        >
-          <div className="bg-accent/15 absolute -top-32 left-1/2 size-[34rem] -translate-x-1/2 rounded-full blur-[110px] dark:opacity-60" />
-          <div className="bg-warn/12 absolute top-40 -right-24 size-80 rounded-full blur-[100px] dark:opacity-40" />
-        </div>
-
+      {/* Static page: no entrance animation here, so the first paint is final. */}
+      <section className="hero-bg relative overflow-hidden">
         <div className="mx-auto flex min-h-[74dvh] max-w-6xl flex-col items-center justify-center px-4 py-14 text-center">
           <Link
             href="/firsatlar"
-            style={{ "--d": "0ms" } as React.CSSProperties}
-            className="animate-fade-up border-line bg-surface/80 group mb-7 inline-flex min-h-11 items-center gap-2.5 rounded-full border px-4 text-sm shadow-sm backdrop-blur-md"
+            className="border-line bg-surface group mb-7 inline-flex min-h-11 max-w-full items-center gap-2.5 rounded-full border px-4 py-2 text-sm shadow-sm"
           >
-            <span className="relative flex size-2.5" aria-hidden="true">
+            <span
+              className="relative flex size-2.5 shrink-0"
+              aria-hidden="true"
+            >
               <span className="bg-deal absolute inline-flex size-full rounded-full opacity-60 motion-safe:animate-ping" />
               <span className="bg-deal relative inline-flex size-2.5 rounded-full" />
             </span>
-            <span>
+            <span className="text-balance">
               Bugün <strong className="price font-semibold">{dealCount}</strong>{" "}
               üründe gerçek indirim var
             </span>
             <ArrowRight
-              className="text-muted size-4 transition-transform duration-300 group-hover:translate-x-0.5"
+              className="text-muted size-4 shrink-0 transition-transform duration-300 group-hover:translate-x-0.5"
               aria-hidden="true"
             />
           </Link>
 
-          <h1
-            style={{ "--d": "90ms" } as React.CSSProperties}
-            className="animate-fade-up max-w-3xl text-[2.9rem] leading-[1.02] font-semibold tracking-[-0.04em] text-balance sm:text-7xl lg:text-8xl"
-          >
+          <h1 className="max-w-3xl text-[clamp(2.3rem,11.5vw,3.1rem)] leading-[1.03] font-semibold tracking-[-0.04em] text-balance sm:text-7xl lg:text-8xl">
             {before}
             <span className="text-gradient-accent">{highlight}</span>
             {after}
           </h1>
-          <p
-            style={{ "--d": "180ms" } as React.CSSProperties}
-            className="animate-fade-up text-muted mt-6 max-w-xl text-lg text-pretty sm:text-xl"
-          >
+          <p className="text-muted mt-6 max-w-xl text-lg text-pretty sm:text-xl">
             {siteConfig.description}
           </p>
 
-          <div
-            style={{ "--d": "270ms" } as React.CSSProperties}
-            className="animate-fade-up mt-10 w-full"
-          >
+          <div className="mt-10 w-full">
             <SearchBar />
           </div>
 
           <nav
             aria-label="Popüler aramalar"
-            style={{ "--d": "360ms" } as React.CSSProperties}
-            className="animate-fade-up no-scrollbar mt-5 flex w-full max-w-xl snap-x scroll-px-4 gap-2 overflow-x-auto px-1 pb-1 sm:flex-wrap sm:justify-center"
+            className="no-scrollbar mt-5 flex w-full max-w-xl snap-x scroll-px-4 gap-2 overflow-x-auto px-1 pb-1 sm:flex-wrap sm:justify-center"
           >
             {siteConfig.popularSearches.map((term) => (
               <Link
                 key={term}
                 href={`/ara?q=${encodeURIComponent(term)}`}
-                className="border-line bg-surface/80 hover:bg-ink hover:text-bg hover:border-ink inline-flex min-h-11 shrink-0 snap-start items-center rounded-full border px-4 text-sm whitespace-nowrap backdrop-blur-md transition-[background-color,color,border-color,transform] duration-200 active:scale-95"
+                className="border-line bg-surface hover:bg-ink hover:text-bg hover:border-ink inline-flex min-h-11 shrink-0 snap-start items-center rounded-full border px-4 text-sm whitespace-nowrap transition-[background-color,color,border-color,transform] duration-200 active:scale-95"
               >
                 {term}
               </Link>
@@ -162,17 +140,23 @@ export default async function Home() {
         <Reveal>
           <ul className="no-scrollbar edge-fade-x relative -mx-4 flex snap-x scroll-px-4 gap-3 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-5 sm:overflow-visible sm:[mask-image:none] sm:px-0">
             {topLevel.map((c) => {
-              const Icon = CATEGORY_ICONS[c.slug] ?? Shirt;
+              const art = CATEGORY_ART[c.slug] ?? CATEGORY_ART.kadin;
               return (
                 <li key={c.id} className="w-36 shrink-0 snap-start sm:w-auto">
                   <Link
                     href={`/kategori/${c.slug}`}
-                    className="border-line bg-surface group flex h-full flex-col gap-4 rounded-3xl border p-4 transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-[0_14px_30px_-14px_rgb(0_0_0/0.2)] active:scale-[0.97]"
+                    className="border-line bg-surface group flex h-full flex-col overflow-hidden rounded-3xl border transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-[0_14px_30px_-14px_rgb(0_0_0/0.2)] active:scale-[0.97]"
                   >
-                    <span className="bg-accent/12 text-accent-text inline-flex size-11 items-center justify-center rounded-2xl transition-transform duration-300 group-hover:scale-110">
-                      <Icon className="size-5" aria-hidden="true" />
+                    <span className="from-ink/[0.03] to-ink/[0.07] block h-28 overflow-hidden bg-gradient-to-b p-2">
+                      <ProductImage
+                        kind={art.kind}
+                        color={art.color}
+                        alt={c.name}
+                        decorative
+                        className="scale-[1.12] transition-transform duration-500 ease-out group-hover:scale-[1.25] group-hover:-rotate-3"
+                      />
                     </span>
-                    <span>
+                    <span className="block p-3.5">
                       <span className="block text-base font-semibold tracking-tight">
                         {c.name}
                       </span>

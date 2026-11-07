@@ -207,18 +207,22 @@ export function ProductImage({
   kind,
   color,
   alt,
+  decorative = false,
   className = "",
 }: {
   kind: ImageKind;
   color: string;
   alt: string;
+  /** Purely decorative (a nearby text already names it): hidden from screen readers. */
+  decorative?: boolean;
   className?: string;
 }) {
   const fill = hex(color);
   return (
     <svg
-      role="img"
-      aria-label={alt}
+      role={decorative ? undefined : "img"}
+      aria-label={decorative ? undefined : alt}
+      aria-hidden={decorative || undefined}
       viewBox="0 0 200 240"
       className={`h-full w-full ${className}`}
       preserveAspectRatio="xMidYMid meet"

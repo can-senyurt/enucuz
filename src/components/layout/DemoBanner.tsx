@@ -6,7 +6,7 @@ export function DemoBanner() {
   return (
     <div
       role="status"
-      className="bg-ink text-bg px-4 py-1.5 text-center text-xs font-medium"
+      className="bg-ink text-bg px-4 py-1.5 text-center text-xs font-medium text-balance"
     >
       Demo veriler gösteriliyor · Fiyatlar ve mağazalar kurgusaldır
     </div>

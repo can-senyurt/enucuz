@@ -27,7 +27,7 @@ export function ProductCard({
   return (
     <Link
       href={`/urun/${product.slug}`}
-      className="group border-line bg-surface relative flex h-full flex-col overflow-hidden rounded-[1.75rem] border shadow-[0_1px_2px_rgb(0_0_0/0.04)] transition-[transform,box-shadow] duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_18px_40px_-12px_rgb(0_0_0/0.18)] active:scale-[0.985] active:duration-100"
+      className="group border-line bg-surface @container relative flex h-full flex-col overflow-hidden rounded-[1.75rem] border shadow-[0_1px_2px_rgb(0_0_0/0.04)] transition-[transform,box-shadow] duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_18px_40px_-12px_rgb(0_0_0/0.18)] active:scale-[0.985] active:duration-100"
     >
       <div className="from-ink/[0.03] to-ink/[0.07] relative aspect-[4/5] overflow-hidden bg-gradient-to-b">
         <ProductImage
@@ -36,7 +36,9 @@ export function ProductCard({
           alt={`${product.title}, ${product.colors[0]}`}
           className="transition-transform duration-500 ease-out motion-safe:group-hover:scale-[1.06]"
         />
-        <DealBadge deal={deal} compact className="absolute top-3 left-3" />
+        <div className="absolute inset-x-3 top-3 flex justify-center">
+          <DealBadge deal={deal} compact />
+        </div>
       </div>
 
       <div className="flex flex-1 flex-col p-4">
@@ -57,29 +59,24 @@ export function ProductCard({
           )}
 
           {showDrop && product.drop7d > 0 && (
-            <p className="bg-deal/12 text-deal-text mt-2.5 inline-flex items-center gap-1.5 rounded-full py-1 pr-3 pl-2 text-xs font-semibold whitespace-nowrap">
-              <TrendingDown className="size-3.5" aria-hidden="true" />
-              <span>
+            <p className="bg-deal/12 text-deal-text mt-2.5 flex w-full items-center justify-center gap-1.5 rounded-2xl px-2 py-1.5 text-xs font-semibold">
+              <TrendingDown className="size-3.5 shrink-0" aria-hidden="true" />
+              <span className="min-w-0 truncate">
                 <span className="price">%{product.drop7d}</span> düştü
                 <span className="sr-only"> son 7 günde</span>
-              </span>
-              <span
-                className="text-deal-text/70 font-medium"
-                aria-hidden="true"
-              >
-                · 7 gün
               </span>
             </p>
           )}
 
           <div className="mt-3 flex items-center justify-between gap-2">
-            <p className="text-muted text-xs whitespace-nowrap">
+            <p className="text-muted min-w-0 truncate text-xs">
               {product.storeCount} mağazada
             </p>
+            {/* Hidden when the card is too narrow to hold it (small phones / zoomed pages). */}
             <Sparkline
               values={product.sparkline}
               tone={sparkTone}
-              className="h-6 w-12 shrink-0"
+              className="hidden h-6 w-12 shrink-0 @min-[9.75rem]:block"
             />
           </div>
         </div>

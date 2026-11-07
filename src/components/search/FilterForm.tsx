@@ -1,3 +1,4 @@
+import { useId } from "react";
 import Form from "next/form";
 import type { Category, FilterOptions } from "@/types";
 import type { ListingState } from "@/lib/search/params";
@@ -21,6 +22,9 @@ export function FilterForm({
   categories: Category[];
   fixedCategory?: string;
 }) {
+  // Unique per instance: the mobile sheet and desktop sidebar both render this form,
+  // and Next keeps previous pages hidden in the DOM.
+  const uid = useId();
   const topLevel = categories.filter((c) => c.parentId === null);
   const chip =
     "border-line bg-surface peer-checked:border-ink peer-checked:bg-ink peer-checked:text-bg peer-focus-visible:outline-accent inline-flex min-h-11 min-w-11 items-center justify-center rounded-full border px-4 text-sm font-medium peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2";
@@ -38,13 +42,13 @@ export function FilterForm({
       {!fixedCategory && (
         <div>
           <label
-            htmlFor={`${idPrefix}-kategori`}
+            htmlFor={`${uid}${idPrefix}-kategori`}
             className="text-sm font-semibold"
           >
             Kategori
           </label>
           <select
-            id={`${idPrefix}-kategori`}
+            id={`${uid}${idPrefix}-kategori`}
             name="kategori"
             defaultValue={state.kategori}
             className="border-line bg-surface mt-2 h-12 w-full rounded-2xl border px-4 text-base"
@@ -70,11 +74,11 @@ export function FilterForm({
         <legend className="text-sm font-semibold">Fiyat aralığı (₺)</legend>
         <div className="mt-2 grid grid-cols-2 gap-3">
           <div>
-            <label htmlFor={`${idPrefix}-min`} className="sr-only">
+            <label htmlFor={`${uid}${idPrefix}-min`} className="sr-only">
               En az fiyat
             </label>
             <input
-              id={`${idPrefix}-min`}
+              id={`${uid}${idPrefix}-min`}
               name="min"
               type="number"
               inputMode="numeric"
@@ -85,11 +89,11 @@ export function FilterForm({
             />
           </div>
           <div>
-            <label htmlFor={`${idPrefix}-max`} className="sr-only">
+            <label htmlFor={`${uid}${idPrefix}-max`} className="sr-only">
               En çok fiyat
             </label>
             <input
-              id={`${idPrefix}-max`}
+              id={`${uid}${idPrefix}-max`}
               name="max"
               type="number"
               inputMode="numeric"

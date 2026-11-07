@@ -147,6 +147,15 @@ export const dealShortLabel: Record<DealLabel, string> = {
   "real-deal": "Gerçek Fırsat",
   good: "İyi Fiyat",
   normal: "Normal",
-  inflated: "Şişirilmiş olabilir",
+  inflated: "Şişirilmiş",
   insufficient: "Yeterli veri yok",
+};
+
+/** Shortest labels, for very narrow cards (zoomed pages, small phones). */
+export const dealTinyLabel: Record<DealLabel, string> = {
+  "real-deal": "Fırsat",
+  good: "İyi fiyat",
+  normal: "Normal",
+  inflated: "Şişirilmiş",
+  insufficient: "Veri yok",
 };
