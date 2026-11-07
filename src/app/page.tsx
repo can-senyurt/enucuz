@@ -2,8 +2,9 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { getRepository } from "@/data/repository";
 import { siteConfig } from "@/lib/config";
+import { CATEGORY_ART, DEFAULT_CATEGORY_ART } from "@/lib/category-art";
 import { formatPercent } from "@/lib/format";
-import type { DealLabel, DealScoreResult, ImageKind } from "@/types";
+import type { DealLabel, DealScoreResult } from "@/types";
 import { ProductCard } from "@/components/product/ProductCard";
 import { ProductGrid } from "@/components/product/ProductGrid";
 import { DealRing } from "@/components/ui/DealRing";
@@ -11,15 +12,6 @@ import { ProductImage } from "@/components/ui/ProductImage";
 import { Reveal } from "@/components/ui/Reveal";
 import { SearchBar } from "@/components/ui/SearchBar";
 import { SectionHeader } from "@/components/ui/SectionHeader";
-
-/** Illustration + colour used for each top-level category tile. */
-const CATEGORY_ART: Record<string, { kind: ImageKind; color: string }> = {
-  kadin: { kind: "dress", color: "Bordo" },
-  erkek: { kind: "jacket", color: "Lacivert" },
-  cocuk: { kind: "kids", color: "Sarı" },
-  ayakkabi: { kind: "sneaker", color: "Mavi" },
-  aksesuar: { kind: "bag", color: "Kahverengi" },
-};
 
 /** Illustrative scores for the "how it works" section (not real products). */
 function sampleDeal(label: DealLabel, score: number | null): DealScoreResult {
@@ -140,7 +132,7 @@ export default async function Home() {
         <Reveal>
           <ul className="no-scrollbar edge-fade-x relative -mx-4 flex snap-x scroll-px-4 gap-3 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-5 sm:overflow-visible sm:[mask-image:none] sm:px-0">
             {topLevel.map((c) => {
-              const art = CATEGORY_ART[c.slug] ?? CATEGORY_ART.kadin;
+              const art = CATEGORY_ART[c.slug] ?? DEFAULT_CATEGORY_ART;
               return (
                 <li key={c.id} className="w-36 shrink-0 snap-start sm:w-auto">
                   <Link

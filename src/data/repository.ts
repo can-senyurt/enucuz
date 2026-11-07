@@ -1,4 +1,5 @@
 import type {
+  BrandStat,
   Category,
   CategoryDealStat,
   DealOptions,
@@ -32,6 +33,10 @@ export interface ProductRepository {
   getFilterOptions(): Promise<FilterOptions>;
   getPriceHistory(productId: string, days: 30 | 90): Promise<PricePoint[]>;
   getAllProductSlugs(): Promise<string[]>;
+  /** Brands with their product counts, most products first. */
+  getBrands(): Promise<BrandStat[]>;
+  /** Product count per category slug (a parent includes its children). */
+  getCategoryCounts(): Promise<Record<string, number>>;
 }
 
 export function getRepository(): ProductRepository {

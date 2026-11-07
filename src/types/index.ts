@@ -159,3 +159,31 @@ export interface CategoryDealStat {
   avgRealDrop: number;
   realDealCount: number;
 }
+
+export interface BrandStat {
+  slug: string;
+  name: string;
+  productCount: number;
+}
+
+/** Everything the side menu needs, prepared on the server. */
+export interface MenuData {
+  categories: {
+    slug: string;
+    name: string;
+    count: number;
+    art: { kind: ImageKind; color: string };
+    children: { slug: string; name: string; count: number }[];
+  }[];
+  brands: BrandStat[];
+  featured: {
+    slug: string;
+    title: string;
+    brand: string;
+    price: number;
+    imageKind: ImageKind;
+    color: string;
+    label: DealLabel;
+  }[];
+  totals: { products: number; deals: number; inflated: number };
+}

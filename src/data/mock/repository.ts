@@ -1,5 +1,6 @@
 import { matchToken, normalizeText, tokenize } from "@/lib/search/normalize";
 import type {
+  BrandStat,
   Category,
   CategoryDealStat,
   DealOptions,
@@ -271,5 +272,32 @@ export const mockRepository: ProductRepository = {
 
   async getAllProductSlugs() {
     return getGeneratedProducts().map((p) => p.spec.slug);
+  },
+
+  async getBrands(): Promise<BrandStat[]> {
+    const counts = new Map<string, BrandStat>();
+    for (const p of getGeneratedProducts()) {
+      const entry = counts.get(p.brand.slug) ?? {
+        slug: p.brand.slug,
+        name: p.brand.name,
+        productCount: 0,
+      };
+      entry.productCount += 1;
+      counts.set(p.brand.slug, entry);
+    }
+    return [...counts.values()].sort(
+      (a, b) =>
+        b.productCount - a.productCount || a.name.localeCompare(b.name, "tr"),
+    );
+  },
+
+  async getCategoryCounts(): Promise<Record<string, number>> {
+    const all = getGeneratedProducts();
+    const result: Record<string, number> = {};
+    for (const c of categories) {
+      const set = categoryAndChildren(c.slug);
+      result[c.slug] = all.filter((p) => set.has(p.card.categorySlug)).length;
+    }
+    return result;
   },
 };

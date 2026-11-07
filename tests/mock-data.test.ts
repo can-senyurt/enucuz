@@ -104,3 +104,23 @@ describe("homepage popular searches", () => {
     }
   });
 });
+
+describe("menu data", () => {
+  it("brand counts add up to the catalogue size and are sorted", async () => {
+    const brands = await repo.getBrands();
+    expect(brands.reduce((n, b) => n + b.productCount, 0)).toBe(40);
+    const counts = brands.map((b) => b.productCount);
+    expect([...counts].sort((a, b) => b - a)).toEqual(counts);
+  });
+
+  it("top-level category counts add up to the catalogue size", async () => {
+    const cats = await repo.getCategories();
+    const counts = await repo.getCategoryCounts();
+    const top = cats.filter((c) => c.parentId === null);
+    expect(top.reduce((n, c) => n + counts[c.slug], 0)).toBe(40);
+    // A parent includes its children.
+    const kadin = cats.find((c) => c.slug === "kadin")!;
+    const kids = cats.filter((c) => c.parentId === kadin.id);
+    expect(kids.reduce((n, c) => n + counts[c.slug], 0)).toBe(counts.kadin);
+  });
+});
