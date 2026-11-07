@@ -15,41 +15,17 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 import Form from "next/form";
 import { usePathname } from "next/navigation";
-import {
-  ChevronRight,
-  LayoutGrid,
-  Menu,
-  Moon,
-  Search,
-  Sparkles,
-  TriangleAlert,
-  X,
-} from "lucide-react";
+import { ArrowRight, Plus, Search } from "lucide-react";
 import { dealShortLabel } from "@/lib/deal-score";
 import { formatPrice } from "@/lib/format";
 import type { MenuData } from "@/types";
 import { ProductImage } from "@/components/ui/ProductImage";
 
-/** Deep colours for the brand monograms (white text stays readable on all). */
-const MONOGRAM_COLORS = [
-  "#1f3358",
-  "#7a1f35",
-  "#2f6f4f",
-  "#6b4a2b",
-  "#4b3f8f",
-  "#a14b1e",
-  "#1d5f73",
-  "#5c2d6e",
-];
-
-function monogramColor(slug: string): string {
-  let h = 0;
-  for (const ch of slug) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
-  return MONOGRAM_COLORS[h % MONOGRAM_COLORS.length];
-}
-
-const FOCUSABLE =
-  'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])';
+/**
+ * Site menu in the spirit of apple.com's phone navigation: the header stays,
+ * its menu button turns into an X, and a calm full-height sheet slides in from
+ * the left with big, bold, icon-free links that rise in one after another.
+ */
 
 /** Subscribes to <html data-theme> so the switch always shows the real theme. */
 function subscribeTheme(callback: () => void) {
@@ -61,19 +37,20 @@ function subscribeTheme(callback: () => void) {
   return () => observer.disconnect();
 }
 const getIsDark = () => document.documentElement.dataset.theme === "dark";
-
-/** True only in the browser (the menu panel is rendered through a portal). */
 const subscribeNever = () => () => {};
+
+/** Page regions that must not be reachable while the menu is open. */
+const BACKGROUND_SELECTORS = ["main", "footer"];
 
 export function MenuDrawer({ data }: { data: MenuData }) {
   const panelId = useId();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [top, setTop] = useState(0);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [dragX, setDragX] = useState<number | null>(null);
   const panelRef = useRef<HTMLElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
-  const closeRef = useRef<HTMLButtonElement>(null);
   const touch = useRef<{ x: number; y: number; locked: boolean } | null>(null);
   const wasOpen = useRef(false);
 
@@ -86,6 +63,13 @@ export function MenuDrawer({ data }: { data: MenuData }) {
 
   const close = useCallback(() => setOpen(false), []);
 
+  function openMenu() {
+    // The sheet starts right below the header (and the demo banner above it).
+    const header = document.querySelector("header");
+    setTop(Math.round(header?.getBoundingClientRect().bottom ?? 56));
+    setOpen(true);
+  }
+
   // Close whenever the route changes (a menu link was followed).
   const [lastPath, setLastPath] = useState(pathname);
   if (lastPath !== pathname) {
@@ -93,7 +77,7 @@ export function MenuDrawer({ data }: { data: MenuData }) {
     setOpen(false);
   }
 
-  // Scroll lock, Escape, focus trap and focus return.
+  // Scroll lock, Escape, background inert, focus return.
   useEffect(() => {
     if (!open) {
       if (wasOpen.current) triggerRef.current?.focus({ preventScroll: true });
@@ -107,8 +91,13 @@ export function MenuDrawer({ data }: { data: MenuData }) {
     html.style.overflow = "hidden";
     body.style.overflow = "hidden";
 
+    const background = BACKGROUND_SELECTORS.flatMap((sel) => [
+      ...document.querySelectorAll<HTMLElement>(sel),
+    ]);
+    background.forEach((el) => el.setAttribute("inert", ""));
+
     const focusTimer = window.setTimeout(
-      () => closeRef.current?.focus({ preventScroll: true }),
+      () => panelRef.current?.focus({ preventScroll: true }),
       60,
     );
 
@@ -116,33 +105,19 @@ export function MenuDrawer({ data }: { data: MenuData }) {
       if (e.key === "Escape") {
         e.preventDefault();
         setOpen(false);
-        return;
-      }
-      if (e.key !== "Tab" || !panelRef.current) return;
-      const items = [
-        ...panelRef.current.querySelectorAll<HTMLElement>(FOCUSABLE),
-      ].filter((el) => el.offsetParent !== null);
-      if (items.length === 0) return;
-      const first = items[0];
-      const last = items[items.length - 1];
-      if (e.shiftKey && document.activeElement === first) {
-        e.preventDefault();
-        last.focus();
-      } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault();
-        first.focus();
       }
     }
     document.addEventListener("keydown", onKey);
     return () => {
       window.clearTimeout(focusTimer);
       document.removeEventListener("keydown", onKey);
+      background.forEach((el) => el.removeAttribute("inert"));
       html.style.overflow = prev.html;
       body.style.overflow = prev.body;
     };
   }, [open]);
 
-  // Swipe left on the panel to close it, like an iOS sheet.
+  // Swipe left on the sheet to close it.
   function onTouchStart(e: TouchEvent) {
     const t = e.touches[0];
     touch.current = { x: t.clientX, y: t.clientY, locked: false };
@@ -190,248 +165,87 @@ export function MenuDrawer({ data }: { data: MenuData }) {
 
   let step = 0;
   const item = () => ({ "--i": step++ }) as CSSProperties;
+  const toggleSection = (id: string) =>
+    setExpanded((cur) => (cur === id ? null : id));
 
   const panel = (
     <div
-      className={`fixed inset-0 z-[70] ${open ? "menu-open" : "pointer-events-none"}`}
+      style={{ top }}
+      className={`fixed inset-x-0 bottom-0 z-[45] ${open ? "menu-open" : "pointer-events-none"}`}
     >
-      {/* Dimmed backdrop */}
+      {/* Dimmed backdrop (only visible beside the sheet on wide screens) */}
       <div
         aria-hidden="true"
         onClick={close}
         style={backdropStyle}
-        className={`absolute inset-0 bg-black/45 transition-[opacity,visibility] duration-[450ms] ease-out ${
-          open ? "visible opacity-100" : "invisible opacity-0"
-        } ${open ? "pointer-events-auto" : ""}`}
+        className={`absolute inset-0 bg-black/35 transition-[opacity,visibility] duration-[450ms] ease-out ${
+          open
+            ? "pointer-events-auto visible opacity-100"
+            : "invisible opacity-0"
+        }`}
       />
 
-      <aside
+      <nav
         id={panelId}
         ref={panelRef}
-        role="dialog"
-        aria-modal="true"
+        tabIndex={-1}
         aria-label="Ana menü"
         inert={!open}
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
         style={panelStyle}
-        className={`bg-bg absolute inset-y-0 left-0 flex w-[min(90vw,22rem)] flex-col overflow-hidden rounded-r-[2rem] shadow-[0_0_60px_rgb(0_0_0/0.35)] ${
+        className={`bg-bg absolute inset-y-0 left-0 w-full overflow-y-auto overscroll-contain outline-none sm:w-[26rem] sm:rounded-br-[2rem] sm:shadow-[0_0_60px_rgb(0_0_0/0.25)] ${
           open
-            ? "pointer-events-auto visible translate-x-0 [transition:transform_500ms_cubic-bezier(0.32,0.72,0,1),visibility_0s_0s]"
-            : "invisible -translate-x-full [transition:transform_450ms_cubic-bezier(0.32,0.72,0,1),visibility_0s_450ms]"
+            ? "pointer-events-auto visible translate-x-0 opacity-100 [transition:transform_520ms_cubic-bezier(0.32,0.72,0,1),opacity_300ms_ease,visibility_0s_0s]"
+            : "invisible -translate-x-full opacity-0 [transition:transform_460ms_cubic-bezier(0.32,0.72,0,1),opacity_300ms_ease_80ms,visibility_0s_460ms]"
         }`}
       >
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-[max(2rem,env(safe-area-inset-bottom))]">
-          {/* Title + search (stays pinned while the lists scroll) */}
-          <div className="bg-bg after:from-bg sticky top-0 z-10 px-4 pt-[max(1.25rem,env(safe-area-inset-top))] pb-3 after:pointer-events-none after:absolute after:inset-x-0 after:top-full after:h-5 after:bg-gradient-to-b after:to-transparent">
-            <div
-              className="menu-item flex items-center justify-between"
+        <div className="px-6 pt-6 pb-[max(3rem,env(safe-area-inset-bottom))]">
+          {/* Search */}
+          <Form
+            action="/ara"
+            role="search"
+            onSubmit={close}
+            style={item()}
+            className="menu-item bg-ink/[0.06] focus-within:bg-ink/[0.09] flex h-12 items-center gap-2.5 rounded-xl px-3.5 transition-colors"
+          >
+            <Search
+              className="text-muted size-[18px] shrink-0"
+              aria-hidden="true"
+            />
+            <label htmlFor={`${panelId}-q`} className="sr-only">
+              Ürün ara
+            </label>
+            <input
+              id={`${panelId}-q`}
+              name="q"
+              type="search"
+              placeholder="EnUcuz'da ara"
+              autoComplete="off"
+              enterKeyHint="search"
+              className="placeholder:text-muted h-full min-w-0 flex-1 appearance-none bg-transparent text-base outline-none focus:outline-none focus-visible:outline-none"
+            />
+          </Form>
+
+          {/* Primary list: big, bold, no icons */}
+          <ul className="mt-6" aria-label="Bölümler">
+            <Section
+              id={`${panelId}-firsat`}
+              label="Fırsatlar"
+              open={expanded === `${panelId}-firsat`}
+              onToggle={() => toggleSection(`${panelId}-firsat`)}
               style={item()}
             >
-              <h2 className="text-[2rem] leading-none font-semibold tracking-tight">
-                Menü
-              </h2>
-              <button
-                ref={closeRef}
-                type="button"
-                onClick={close}
-                aria-label="Menüyü kapat"
-                className="bg-ink/8 hover:bg-ink/12 inline-flex size-11 items-center justify-center rounded-full transition-colors active:scale-95"
-              >
-                <X className="size-5" aria-hidden="true" />
-              </button>
-            </div>
-
-            <Form
-              action="/ara"
-              role="search"
-              onSubmit={close}
-              className="menu-item bg-ink/[0.06] focus-within:bg-ink/[0.09] mt-4 flex h-11 items-center gap-2 rounded-xl px-3 transition-colors"
-              style={item()}
-            >
-              <Search
-                className="text-muted size-[18px] shrink-0"
-                aria-hidden="true"
-              />
-              <label htmlFor={`${panelId}-q`} className="sr-only">
-                Ürün ara
-              </label>
-              <input
-                id={`${panelId}-q`}
-                name="q"
-                type="search"
-                placeholder="Ürün, marka, kategori"
-                autoComplete="off"
-                enterKeyHint="search"
-                className="placeholder:text-muted h-full min-w-0 flex-1 appearance-none bg-transparent text-base outline-none focus:outline-none focus-visible:outline-none"
-              />
-            </Form>
-          </div>
-
-          <nav aria-label="Menü" className="space-y-6 px-4 pt-2">
-            {/* Discover */}
-            <Group style={item()}>
-              <Row
-                href="/firsatlar"
-                onNavigate={close}
-                style={item()}
-                icon={<Sparkles className="size-[18px]" aria-hidden="true" />}
-                color="#34c759"
-                label="Günün Fırsatları"
-                trailing={<Count>{data.totals.deals}</Count>}
-              />
-              <Row
-                href="/ara"
-                onNavigate={close}
-                style={item()}
-                icon={<LayoutGrid className="size-[18px]" aria-hidden="true" />}
-                color="#ff5a36"
-                label="Tüm Ürünler"
-                trailing={<Count>{data.totals.products}</Count>}
-              />
-              <Row
-                href="/firsatlar#sisirilmis"
-                onNavigate={close}
-                style={item()}
-                icon={
-                  <TriangleAlert className="size-[18px]" aria-hidden="true" />
-                }
-                color="#ff9f0a"
-                label="Dikkat Listesi"
-                trailing={<Count>{data.totals.inflated}</Count>}
-              />
-            </Group>
-
-            {/* Categories */}
-            <section aria-labelledby={`${panelId}-kat`}>
-              <SectionTitle id={`${panelId}-kat`} style={item()}>
-                Kategoriler
-              </SectionTitle>
-              <Group style={item()}>
-                {data.categories.map((cat) => {
-                  const isOpen = expanded === cat.slug;
-                  return (
-                    <div
-                      key={cat.slug}
-                      className="menu-item after:bg-line relative after:absolute after:right-0 after:bottom-0 after:left-[3.75rem] after:h-px last:after:hidden"
-                      style={item()}
-                    >
-                      <button
-                        type="button"
-                        onClick={() => setExpanded(isOpen ? null : cat.slug)}
-                        aria-expanded={isOpen}
-                        aria-controls={`${panelId}-${cat.slug}`}
-                        className="hover:bg-ink/[0.04] active:bg-ink/[0.07] flex min-h-14 w-full items-center gap-3 px-3 text-left transition-colors"
-                      >
-                        <span className="from-ink/[0.03] to-ink/[0.08] block size-10 shrink-0 overflow-hidden rounded-xl bg-gradient-to-b p-0.5">
-                          <ProductImage
-                            kind={cat.art.kind}
-                            color={cat.art.color}
-                            alt={cat.name}
-                            decorative
-                          />
-                        </span>
-                        <span className="min-w-0 flex-1 text-[17px] font-medium tracking-tight">
-                          {cat.name}
-                        </span>
-                        <Count>{cat.count}</Count>
-                        <ChevronRight
-                          className={`text-muted size-[18px] shrink-0 transition-transform duration-300 ${
-                            isOpen ? "rotate-90" : ""
-                          }`}
-                          aria-hidden="true"
-                        />
-                      </button>
-
-                      <div
-                        id={`${panelId}-${cat.slug}`}
-                        className={`grid transition-[grid-template-rows] duration-[400ms] ease-[cubic-bezier(0.32,0.72,0,1)] ${
-                          isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
-                        }`}
-                      >
-                        <ul className="overflow-hidden" inert={!isOpen}>
-                          <li className="border-line mx-3 border-t pt-1">
-                            <SubLink
-                              href={`/kategori/${cat.slug}`}
-                              onNavigate={close}
-                            >
-                              Tümünü gör <Count>{cat.count}</Count>
-                            </SubLink>
-                          </li>
-                          {cat.children.map((child) => (
-                            <li key={child.slug} className="mx-3 last:mb-2">
-                              <SubLink
-                                href={`/kategori/${child.slug}`}
-                                onNavigate={close}
-                              >
-                                {child.name} <Count>{child.count}</Count>
-                              </SubLink>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
-                  );
-                })}
-              </Group>
-            </section>
-
-            {/* Brands */}
-            <section aria-labelledby={`${panelId}-marka`}>
-              <SectionTitle id={`${panelId}-marka`} style={item()}>
-                Markalar
-              </SectionTitle>
-              <ul
-                className="menu-item bg-surface grid grid-cols-2 gap-1 rounded-2xl p-1.5"
-                style={item()}
-              >
-                {data.brands.map((b) => (
-                  <li key={b.slug}>
-                    <Link
-                      href={`/ara?marka=${b.slug}`}
-                      onClick={close}
-                      className="hover:bg-ink/[0.05] active:bg-ink/[0.08] flex min-h-14 items-center gap-2.5 rounded-xl p-2 transition-colors"
-                    >
-                      <span
-                        aria-hidden="true"
-                        style={{ backgroundColor: monogramColor(b.slug) }}
-                        className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white"
-                      >
-                        {b.name.charAt(0)}
-                      </span>
-                      <span className="min-w-0">
-                        <span className="line-clamp-2 block text-[15px] leading-tight font-medium">
-                          {b.name}
-                        </span>
-                        <span className="text-muted price block text-xs">
-                          {b.productCount} ürün
-                        </span>
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </section>
-
-            {/* Featured products */}
-            <section aria-labelledby={`${panelId}-urun`}>
-              <SectionTitle id={`${panelId}-urun`} style={item()}>
-                Öne çıkan ürünler
-              </SectionTitle>
-              <Group style={item()}>
+              <ul className="space-y-1 pt-1 pb-3">
                 {data.featured.map((p) => (
-                  <div
-                    key={p.slug}
-                    className="menu-item after:bg-line relative after:absolute after:right-0 after:bottom-0 after:left-[4.25rem] after:h-px last:after:hidden"
-                    style={item()}
-                  >
+                  <li key={p.slug}>
                     <Link
                       href={`/urun/${p.slug}`}
                       onClick={close}
-                      className="hover:bg-ink/[0.04] active:bg-ink/[0.07] flex min-h-[4.25rem] items-center gap-3 px-3 py-2 transition-colors"
+                      className="hover:bg-ink/[0.05] active:bg-ink/[0.08] -mx-2 flex min-h-16 items-center gap-3 rounded-2xl p-2 transition-colors"
                     >
-                      <span className="from-ink/[0.03] to-ink/[0.08] block size-12 shrink-0 overflow-hidden rounded-xl bg-gradient-to-b p-0.5">
+                      <span className="from-ink/[0.03] to-ink/[0.08] block size-14 shrink-0 overflow-hidden rounded-2xl bg-gradient-to-b p-1">
                         <ProductImage
                           kind={p.imageKind}
                           color={p.color}
@@ -443,69 +257,131 @@ export function MenuDrawer({ data }: { data: MenuData }) {
                         <span className="text-muted block truncate text-xs">
                           {p.brand}
                         </span>
-                        <span className="block truncate text-[15px] leading-snug font-medium">
+                        <span className="block truncate text-[17px] leading-snug font-semibold tracking-tight">
                           {p.title}
                         </span>
-                        <span className="price text-sm font-semibold whitespace-nowrap">
-                          {formatPrice(p.price)}
+                        <span className="text-muted price block text-sm">
+                          {formatPrice(p.price)} · {dealShortLabel[p.label]}
                         </span>
                       </span>
-                      <span className="bg-deal/12 text-deal-text shrink-0 rounded-full px-2 py-1 text-[11px] font-semibold whitespace-nowrap">
-                        {dealShortLabel[p.label]}
-                      </span>
                     </Link>
-                  </div>
+                  </li>
                 ))}
-              </Group>
-            </section>
+                <li>
+                  <SeeAll href="/firsatlar" onNavigate={close}>
+                    Tüm fırsatlar ({data.totals.deals})
+                  </SeeAll>
+                </li>
+              </ul>
+            </Section>
 
-            {/* Appearance */}
-            <section aria-label="Görünüm">
-              <Group style={item()}>
-                <div className="menu-item" style={item()}>
-                  <button
-                    type="button"
-                    role="switch"
-                    aria-checked={isDark}
-                    onClick={toggleTheme}
-                    className="hover:bg-ink/[0.04] flex min-h-14 w-full items-center gap-3 px-3 text-left transition-colors"
-                  >
-                    <span
-                      aria-hidden="true"
-                      style={{ backgroundColor: "#5e5ce6" }}
-                      className="inline-flex size-8 shrink-0 items-center justify-center rounded-[0.55rem] text-white"
-                    >
-                      <Moon className="size-[18px]" />
-                    </span>
-                    <span className="flex-1 text-[17px] font-medium tracking-tight">
-                      Koyu görünüm
-                    </span>
-                    <span
-                      aria-hidden="true"
-                      className={`relative h-[31px] w-[51px] shrink-0 rounded-full transition-colors duration-300 ${
-                        isDark ? "bg-deal" : "bg-ink/20"
-                      }`}
-                    >
-                      <span
-                        className={`absolute top-0.5 left-0.5 size-[27px] rounded-full bg-white shadow-md transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] ${
-                          isDark ? "translate-x-5" : "translate-x-0"
-                        }`}
-                      />
-                    </span>
-                  </button>
-                </div>
-              </Group>
-            </section>
+            {data.categories.map((cat) => (
+              <Section
+                key={cat.slug}
+                id={`${panelId}-${cat.slug}`}
+                label={cat.name}
+                open={expanded === `${panelId}-${cat.slug}`}
+                onToggle={() => toggleSection(`${panelId}-${cat.slug}`)}
+                style={item()}
+              >
+                <ul className="space-y-0.5 pt-1 pb-3">
+                  {cat.children.map((child) => (
+                    <li key={child.slug}>
+                      <SubLink
+                        href={`/kategori/${child.slug}`}
+                        onNavigate={close}
+                      >
+                        {child.name}
+                        <span className="text-muted price ml-2 text-base font-normal">
+                          {child.count}
+                        </span>
+                      </SubLink>
+                    </li>
+                  ))}
+                  <li>
+                    <SeeAll href={`/kategori/${cat.slug}`} onNavigate={close}>
+                      Tümünü gör ({cat.count})
+                    </SeeAll>
+                  </li>
+                </ul>
+              </Section>
+            ))}
 
-            <p
-              className="menu-item text-muted px-2 text-center text-xs"
+            <Section
+              id={`${panelId}-marka`}
+              label="Markalar"
+              open={expanded === `${panelId}-marka`}
+              onToggle={() => toggleSection(`${panelId}-marka`)}
               style={item()}
             >
-              Demo veriler kurgusaldır
-            </p>
-          </nav>
+              <ul className="space-y-0.5 pt-1 pb-3">
+                {data.brands.map((b) => (
+                  <li key={b.slug}>
+                    <SubLink href={`/ara?marka=${b.slug}`} onNavigate={close}>
+                      {b.name}
+                      <span className="text-muted price ml-2 text-base font-normal">
+                        {b.productCount}
+                      </span>
+                    </SubLink>
+                  </li>
+                ))}
+              </ul>
+            </Section>
+          </ul>
+
+          {/* Secondary list: small, quiet */}
+          <ul
+            aria-label="Diğer bağlantılar"
+            style={item()}
+            className="menu-item border-line mt-6 space-y-0.5 border-t pt-5"
+          >
+            <li>
+              <MiniLink href="/ara" onNavigate={close}>
+                Tüm ürünler{" "}
+                <span className="price">({data.totals.products})</span>
+              </MiniLink>
+            </li>
+            <li>
+              <MiniLink href="/firsatlar#sisirilmis" onNavigate={close}>
+                Dikkat listesi{" "}
+                <span className="price">({data.totals.inflated})</span>
+              </MiniLink>
+            </li>
+            <li>
+              <MiniLink href="/#neden" onNavigate={close}>
+                İndirim skoru nasıl çalışır?
+              </MiniLink>
+            </li>
+            <li>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={isDark}
+                onClick={toggleTheme}
+                className="text-muted hover:text-ink flex min-h-11 w-full items-center justify-between text-[15px] font-medium transition-colors"
+              >
+                Koyu görünüm
+                <span
+                  aria-hidden="true"
+                  className={`relative h-[31px] w-[51px] shrink-0 rounded-full transition-colors duration-300 ${
+                    isDark ? "bg-deal" : "bg-ink/20"
+                  }`}
+                >
+                  <span
+                    className={`absolute top-0.5 left-0.5 size-[27px] rounded-full bg-white shadow-md transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+                      isDark ? "translate-x-5" : "translate-x-0"
+                    }`}
+                  />
+                </span>
+              </button>
+            </li>
+          </ul>
+
+          <p style={item()} className="menu-item text-muted mt-8 text-xs">
+            EnUcuz · Demo veriler kurgusaldır
+          </p>
         </div>
-      </aside>
+      </nav>
     </div>
   );
 
@@ -514,14 +390,25 @@ export function MenuDrawer({ data }: { data: MenuData }) {
       <button
         ref={triggerRef}
         type="button"
-        onClick={() => setOpen(true)}
-        aria-label="Menüyü aç"
-        aria-haspopup="dialog"
+        onClick={() => (open ? close() : openMenu())}
+        aria-label={open ? "Menüyü kapat" : "Menüyü aç"}
         aria-expanded={open}
         aria-controls={panelId}
-        className="hover:bg-ink/5 -ml-2 inline-flex size-11 shrink-0 items-center justify-center rounded-full transition-[background-color,transform] active:scale-90"
+        className="-ml-2 inline-flex size-11 shrink-0 items-center justify-center rounded-full transition-transform active:scale-90"
       >
-        <Menu className="size-[22px]" aria-hidden="true" />
+        {/* Two lines that turn into an X */}
+        <span aria-hidden="true" className="relative block h-3 w-[22px]">
+          <span
+            className={`bg-ink absolute left-0 h-[1.5px] w-full rounded-full transition-transform duration-[450ms] ease-[cubic-bezier(0.32,0.72,0,1)] ${
+              open ? "top-[5.25px] rotate-45" : "top-0 rotate-0"
+            }`}
+          />
+          <span
+            className={`bg-ink absolute left-0 h-[1.5px] w-full rounded-full transition-transform duration-[450ms] ease-[cubic-bezier(0.32,0.72,0,1)] ${
+              open ? "top-[5.25px] -rotate-45" : "top-[10.5px] rotate-0"
+            }`}
+          />
+        </span>
       </button>
       {/* A portal: the header uses backdrop-filter, which would otherwise trap
           position:fixed children inside the header's own box. */}
@@ -530,95 +417,58 @@ export function MenuDrawer({ data }: { data: MenuData }) {
   );
 }
 
-/* ---------- small building blocks (iOS Settings-style lists) ---------- */
+/* ---------- building blocks ---------- */
 
-function Group({
-  children,
-  style,
-}: {
-  children: ReactNode;
-  style: CSSProperties;
-}) {
-  return (
-    <div
-      style={style}
-      className="menu-item bg-surface overflow-hidden rounded-2xl"
-    >
-      {children}
-    </div>
-  );
-}
-
-function SectionTitle({
-  children,
+/** A big headline row that expands to show its links (one open at a time). */
+function Section({
   id,
-  style,
-}: {
-  children: ReactNode;
-  id: string;
-  style: CSSProperties;
-}) {
-  return (
-    <h3
-      id={id}
-      style={style}
-      className="menu-item text-muted mb-2 px-3 text-xs font-semibold tracking-wider uppercase"
-    >
-      {children}
-    </h3>
-  );
-}
-
-function Count({ children }: { children: ReactNode }) {
-  return (
-    <span className="text-muted price shrink-0 text-[15px]">{children}</span>
-  );
-}
-
-function Row({
-  href,
-  icon,
-  color,
   label,
-  trailing,
-  onNavigate,
+  open,
+  onToggle,
   style,
+  children,
 }: {
-  href: string;
-  icon: ReactNode;
-  color: string;
+  id: string;
   label: string;
-  trailing?: ReactNode;
-  onNavigate: () => void;
+  open: boolean;
+  onToggle: () => void;
   style: CSSProperties;
+  children: ReactNode;
 }) {
   return (
-    <div
-      style={style}
-      className="menu-item after:bg-line relative after:absolute after:right-0 after:bottom-0 after:left-[3.75rem] after:h-px last:after:hidden"
-    >
-      <Link
-        href={href}
-        onClick={onNavigate}
-        className="hover:bg-ink/[0.04] active:bg-ink/[0.07] flex min-h-14 items-center gap-3 px-3 transition-colors"
+    <li style={style} className="menu-item">
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={open}
+        aria-controls={id}
+        className="group flex min-h-[3.4rem] w-full items-center justify-between gap-4 py-1.5 text-left"
       >
         <span
-          aria-hidden="true"
-          style={{ backgroundColor: color }}
-          className="inline-flex size-8 shrink-0 items-center justify-center rounded-[0.55rem] text-white"
+          className={`text-[1.85rem] leading-tight font-semibold tracking-tight transition-colors duration-300 ${
+            open ? "text-ink" : "text-ink/90 group-hover:text-ink"
+          }`}
         >
-          {icon}
-        </span>
-        <span className="min-w-0 flex-1 text-[17px] font-medium tracking-tight">
           {label}
         </span>
-        {trailing}
-        <ChevronRight
-          className="text-muted size-[18px] shrink-0"
+        <Plus
+          className={`text-muted size-6 shrink-0 transition-transform duration-[450ms] ease-[cubic-bezier(0.32,0.72,0,1)] ${
+            open ? "rotate-45" : ""
+          }`}
           aria-hidden="true"
         />
-      </Link>
-    </div>
+      </button>
+      <div
+        id={id}
+        className={`grid transition-[grid-template-rows,opacity] duration-[450ms] ease-[cubic-bezier(0.32,0.72,0,1)] ${
+          open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+        }`}
+      >
+        <div className="overflow-hidden" inert={!open}>
+          {children}
+        </div>
+      </div>
+    </li>
   );
 }
 
@@ -635,7 +485,51 @@ function SubLink({
     <Link
       href={href}
       onClick={onNavigate}
-      className="hover:bg-ink/[0.05] active:bg-ink/[0.08] flex min-h-11 items-center justify-between gap-3 rounded-lg px-2 text-[15px] transition-colors"
+      className="text-ink/80 hover:text-ink active:text-ink flex min-h-12 items-baseline py-2 text-[1.3rem] leading-tight font-semibold tracking-tight transition-colors"
+    >
+      {children}
+    </Link>
+  );
+}
+
+function SeeAll({
+  href,
+  onNavigate,
+  children,
+}: {
+  href: string;
+  onNavigate: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      onClick={onNavigate}
+      className="text-accent-text group inline-flex min-h-12 items-center gap-1.5 text-[17px] font-semibold"
+    >
+      {children}
+      <ArrowRight
+        className="size-4 transition-transform duration-300 group-hover:translate-x-1"
+        aria-hidden="true"
+      />
+    </Link>
+  );
+}
+
+function MiniLink({
+  href,
+  onNavigate,
+  children,
+}: {
+  href: string;
+  onNavigate: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      onClick={onNavigate}
+      className="text-muted hover:text-ink flex min-h-11 items-center gap-1.5 text-[15px] font-medium transition-colors"
     >
       {children}
     </Link>
