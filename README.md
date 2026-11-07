@@ -1,2 +1,11 @@
-# enucuz
-Giyim fiyat karşılaştırma ve indirim takip sitesi
+# EnUcuz
+
+Giyim fiyat karşılaştırma ve indirim takip sitesi. Proje rehberi için `CLAUDE.md` dosyasına bak.
+
+## Komutlar
+
+- `npm run dev` — geliştirme sunucusu
+- `npm run build` — üretim derlemesi
+- `npm run lint` — ESLint
+- `npm run typecheck` — TypeScript kontrolü
+- `npm run format` — Prettier ile biçimlendir
