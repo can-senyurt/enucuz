@@ -1,6 +1,9 @@
 import Link from "next/link";
+import { Search } from "lucide-react";
 import { siteConfig } from "@/lib/config";
 import { ThemeToggle } from "./ThemeToggle";
+
+const navLinks = [{ href: "/firsatlar", label: "Fırsatlar" }];
 
 export function Header() {
   return (
@@ -17,7 +20,25 @@ export function Header() {
           />
           {siteConfig.name}
         </Link>
-        <ThemeToggle />
+        <nav aria-label="Ana menü" className="flex items-center gap-1">
+          {navLinks.map((l) => (
+            <Link
+              key={l.href}
+              href={l.href}
+              className="hover:bg-ink/5 inline-flex min-h-11 items-center rounded-full px-3 text-sm font-medium"
+            >
+              {l.label}
+            </Link>
+          ))}
+          <Link
+            href="/ara"
+            aria-label="Ara"
+            className="hover:bg-ink/5 inline-flex size-11 items-center justify-center rounded-full"
+          >
+            <Search className="size-5" aria-hidden="true" />
+          </Link>
+          <ThemeToggle />
+        </nav>
       </div>
     </header>
   );

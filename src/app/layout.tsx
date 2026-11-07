@@ -3,6 +3,7 @@ import "./globals.css";
 import { siteConfig } from "@/lib/config";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { DemoBanner } from "@/components/layout/DemoBanner";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
@@ -33,6 +34,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body className="flex min-h-dvh flex-col">
+        <DemoBanner />
         <Header />
         <main className="flex-1">{children}</main>
         <Footer />

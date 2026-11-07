@@ -16,7 +16,9 @@
   --on-accent: #111113; /* text on accent fills; stays dark in both themes for AA contrast */
   --accent-text: #c93211; /* AA-contrast accent for small text on light bg */
   --deal: #12a150;
+  --deal-text: #0b7a3b; /* AA text colour for green labels on light bg */
   --warn: #e8a317;
+  --warn-text: #7a5200; /* AA text colour for amber labels on light bg */
   color-scheme: light;
 }
 
@@ -27,6 +29,8 @@
   --muted: #a1a1a8;
   --line: rgb(245 245 247 / 0.12);
   --accent-text: #ff7a5c;
+  --deal-text: #4ade80;
+  --warn-text: #f5c04a;
   color-scheme: dark;
 }
 
@@ -39,6 +43,8 @@
     --muted: #a1a1a8;
     --line: rgb(245 245 247 / 0.12);
     --accent-text: #ff7a5c;
+    --deal-text: #4ade80;
+    --warn-text: #f5c04a;
     color-scheme: dark;
   }
 }
@@ -53,7 +59,9 @@
   --color-on-accent: var(--on-accent);
   --color-accent-text: var(--accent-text);
   --color-deal: var(--deal);
+  --color-deal-text: var(--deal-text);
   --color-warn: var(--warn);
+  --color-warn-text: var(--warn-text);
 
   --font-sans:
     -apple-system, BlinkMacSystemFont, "Inter", system-ui, "Segoe UI",

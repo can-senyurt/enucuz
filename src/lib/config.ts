@@ -20,4 +20,7 @@ export const siteConfig = {
   ],
 } as const;
 
+/** True while the site runs on made-up demo data (Phase 0–1, DATA_SOURCE=mock). */
+export const isDemoData = (process.env.DATA_SOURCE ?? "mock") === "mock";
+
 export type SiteConfig = typeof siteConfig;
