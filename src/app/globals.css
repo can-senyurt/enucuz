@@ -6,29 +6,37 @@
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
 /* ---------- Design tokens ---------- */
+/* Brand palette (from the owner's colour board):
+   #003120 deep green · #006241 green · #73A996 sage · #D1E3DD mint · #F7F7F5 off-white.
+   Every colour in the site comes from these tokens; change them here only. */
 :root {
-  --bg: #fafaf7;
+  --bg: #f7f7f5;
   --surface: #ffffff;
-  --ink: #111113;
-  --muted: #6b6b70;
-  --line: rgb(17 17 19 / 0.1);
-  --accent: #ff5a36;
-  --on-accent: #111113; /* text on accent fills; stays dark in both themes for AA contrast */
-  --accent-text: #c93211; /* AA-contrast accent for small text on light bg */
-  --deal: #12a150;
-  --deal-text: #0b7a3b; /* AA text colour for green labels on light bg */
+  --ink: #003120; /* deep green, used as the "black" for text */
+  --muted: #566b62;
+  --line: rgb(0 49 32 / 0.12);
+  --accent: #006241; /* brand green: buttons, links, progress */
+  --on-accent: #ffffff; /* text on accent fills */
+  --accent-text: #006241; /* accent as small text on the light background */
+  --sage: #73a996;
+  --mint: #d1e3dd;
+  --deal: #12a150; /* genuine deal (a fresher green than the brand green) */
+  --deal-text: #065c2a; /* AA text colour for green labels, also on green tints */
   --warn: #e8a317;
   --warn-text: #7a5200; /* AA text colour for amber labels on light bg */
   color-scheme: light;
 }
 
 :root[data-theme="dark"] {
-  --bg: #0b0b0c;
-  --surface: #161618;
-  --ink: #f5f5f7;
-  --muted: #a1a1a8;
-  --line: rgb(245 245 247 / 0.12);
-  --accent-text: #ff7a5c;
+  --bg: #04140e;
+  --surface: #0b221a;
+  --ink: #f7f7f5;
+  --muted: #9cb5aa;
+  --line: rgb(247 247 245 / 0.12);
+  --accent: #73a996; /* sage works as the accent on dark */
+  --on-accent: #00231a;
+  --accent-text: #8fc4b1;
+  --mint: #12332a;
   --deal-text: #4ade80;
   --warn-text: #f5c04a;
   color-scheme: dark;
@@ -37,12 +45,15 @@
 /* No-JS fallback: follow the system until the script sets data-theme. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
-    --bg: #0b0b0c;
-    --surface: #161618;
-    --ink: #f5f5f7;
-    --muted: #a1a1a8;
-    --line: rgb(245 245 247 / 0.12);
-    --accent-text: #ff7a5c;
+    --bg: #04140e;
+    --surface: #0b221a;
+    --ink: #f7f7f5;
+    --muted: #9cb5aa;
+    --line: rgb(247 247 245 / 0.12);
+    --accent: #73a996;
+    --on-accent: #00231a;
+    --accent-text: #8fc4b1;
+    --mint: #12332a;
     --deal-text: #4ade80;
     --warn-text: #f5c04a;
     color-scheme: dark;
@@ -58,6 +69,8 @@
   --color-accent: var(--accent);
   --color-on-accent: var(--on-accent);
   --color-accent-text: var(--accent-text);
+  --color-sage: var(--sage);
+  --color-mint: var(--mint);
   --color-deal: var(--deal);
   --color-deal-text: var(--deal-text);
   --color-warn: var(--warn);
@@ -263,12 +276,12 @@ input[type="search"]::-webkit-search-decoration {
   background:
     radial-gradient(
       58rem 26rem at 50% -7rem,
-      color-mix(in srgb, var(--accent) 15%, transparent),
+      color-mix(in srgb, var(--mint) 90%, transparent),
       transparent 72%
     ),
     radial-gradient(
       28rem 20rem at 105% 11rem,
-      color-mix(in srgb, var(--warn) 11%, transparent),
+      color-mix(in srgb, var(--sage) 24%, transparent),
       transparent 72%
     );
 }
@@ -276,22 +289,27 @@ input[type="search"]::-webkit-search-decoration {
   background:
     radial-gradient(
       58rem 26rem at 50% -7rem,
-      color-mix(in srgb, var(--accent) 9%, transparent),
+      color-mix(in srgb, var(--accent) 16%, transparent),
       transparent 72%
     ),
     radial-gradient(
       28rem 20rem at 105% 11rem,
-      color-mix(in srgb, var(--warn) 6%, transparent),
+      color-mix(in srgb, var(--sage) 9%, transparent),
       transparent 72%
     );
 }
 
 /* Accent gradient for one highlighted word in a headline. */
 .text-gradient-accent {
-  background: linear-gradient(120deg, #ff5a36 10%, #ff9a3c 90%);
+  background: linear-gradient(120deg, var(--accent) 10%, #3e8e74 90%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+}
+:root[data-theme="dark"] .text-gradient-accent {
+  background: linear-gradient(120deg, var(--accent) 10%, #d1e3dd 95%);
+  -webkit-background-clip: text;
+  background-clip: text;
 }
 
 @media (prefers-reduced-motion: reduce) {

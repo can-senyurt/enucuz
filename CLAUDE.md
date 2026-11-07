@@ -17,6 +17,17 @@
 
 ---
 
+## 0.5 Güncel Durum (yeni oturumda ÖNCE bunu oku)
+
+- **Bitti:** Faz 0 ve Faz 1, `main`'e birleşti ve canlıda: https://enucuz.vercel.app (Vercel girişi + VPN gerekir).
+- **Bekleyen onay:** Yeşil renk paleti (Bölüm 3.1) `claude/site-project-analysis-r9zxai` dalında hazır; proje sahibi önizlemede beğenirse `main`'e alınır.
+- **Sırada:** Faz 2 (Supabase). Proje sahibinin onayını bekle; önce `docs/HANDOFF.md` dosyasını oku.
+- **Ayrıntılı devir notu:** `docs/HANDOFF.md` (neler yapıldı, kararlar, tuzaklar, Vercel/GitHub bilgileri, test araçları, Faz 2 planı).
+- **Test araçları:** `scripts/qa/` (Playwright + axe denetimleri), `npm test` (birim testleri).
+- **Çalışma kuralı:** Telefondan çalışılıyor; sade Türkçe anlat, her faz sonunda kontrol listesi ver ve onay bekle.
+
+---
+
 ## 1. Ürün Vizyonu
 
 Kullanıcı aradığı giyim ürününü (ör. "siyah deri ceket", "Nike Air Force 1") arar; EnUcuz bu ürünün farklı mağazalardaki fiyatlarını yan yana gösterir, **en ucuz mağazayı ve linkini** öne çıkarır.
@@ -62,11 +73,12 @@ Yeni bir bağımlılık eklemeden önce **neden gerektiğini** bir cümleyle bel
 ### 3.1 Kimlik
 
 - **His:** Sakin, güvenilir, premium ama samimi. "Akıllı alışveriş arkadaşı."
-- **Renkler (token olarak tanımla):**
-  - `bg`: #FAFAF7 (sıcak kırık beyaz) · `surface`: #FFFFFF · `ink`: #111113 · `muted`: #6B6B70
-  - `accent` (marka / fiyat düşüşü): #FF5A36 (mercan turuncu)
-  - `deal` (gerçek indirim): #12A150 · `warn` (şişirilmiş indirim): #E8A317
-  - Koyu mod: `bg` #0B0B0C, `surface` #161618, metinler buna göre
+- **Renkler** (proje sahibinin renk kartelası; **yalnızca `src/app/globals.css` içindeki token'lardan** kullanılır, koda sabit renk yazılmaz):
+  - Palet: `#003120` derin yeşil · `#006241` yeşil · `#73A996` adaçayı · `#D1E3DD` nane · `#F7F7F5` kırık beyaz
+  - Açık mod: `bg` #F7F7F5 · `surface` #FFFFFF · `ink` #003120 (metin) · `muted` #566B62 · `accent` #006241 (marka, düğmeler, ilerleme) · `on-accent` #FFFFFF · `sage` #73A996 · `mint` #D1E3DD
+  - Anlam renkleri: `deal` (gerçek indirim) #12A150, yazısı `deal-text` #065C2A · `warn` (şişirilmiş indirim) #E8A317, yazısı `warn-text` #7A5200
+  - Koyu mod: `bg` #04140E · `surface` #0B221A · `ink` #F7F7F5 · `muted` #9CB5AA · `accent` #73A996 · `on-accent` #00231A
+  - Tüm metin/zemin çiftleri WCAG AA (≥4,5) geçer; yeni renk eklerken `scripts/qa/contrast.js` ile denetle.
 - **Tipografi:** Sistem font yığını (`-apple-system, BlinkMacSystemFont, "Inter", system-ui, sans-serif`). iPhone'da doğal SF görünümü verir. Başlıklarda sıkı harf aralığı ve büyük boyut (ör. hero 48–64px mobil/masaüstü ölçekli).
 - **Fiyatlar:** `tabular-nums`, Türk formatı: `1.299,90 ₺`.
 
@@ -201,24 +213,24 @@ Bu modül saf fonksiyon olarak yazılır ve **Vitest ile birim testleri** zorunl
 
 Her faz bitiminde Claude: **(1)** kodu commit + push eder, **(2)** Vercel önizleme linkini verir, **(3)** "Telefonda şunları kontrol et" listesi yazar, **(4)** bir sonraki faza geçmeden **onay bekler**.
 
-### Faz 0 — Kurulum
-- [ ] Next.js + TypeScript (strict) + Tailwind + ESLint + Prettier kurulumu
-- [ ] Klasör yapısı (Bölüm 4), `lib/config.ts` (marka adı tek yerde)
-- [ ] Tasarım token'ları (renkler, yazı tipi, boşluklar, köşe yarıçapları) Tailwind config'e
-- [ ] Temel layout: cam efektli üst menü, alt bilgi (footer), koyu/açık mod
-- [ ] GitHub'a push; Vercel bağlantısı için proje sahibine adım adım talimat
+### Faz 0 — Kurulum ✅ (bitti, canlıda)
+- [x] Next.js + TypeScript (strict) + Tailwind + ESLint + Prettier kurulumu
+- [x] Klasör yapısı (Bölüm 4), `lib/config.ts` (marka adı tek yerde)
+- [x] Tasarım token'ları (renkler, yazı tipi, boşluklar, köşe yarıçapları) Tailwind config'e
+- [x] Temel layout: cam efektli üst menü, alt bilgi (footer), koyu/açık mod
+- [x] GitHub'a push; Vercel bağlantısı için proje sahibine adım adım talimat
 - **Bitti sayılır:** Önizleme linkinde boş ama tasarım dilini taşıyan bir ana sayfa açılıyor.
 
-### Faz 1 — Arayüz ve Örnek Veri (öncelikli hedef)
-- [ ] `src/data/mock/`: ~40 giyim ürünü, 5 örnek mağaza, her ürün için 2–5 teklif, 90 günlük üretilmiş fiyat geçmişi (bazıları bilerek "şişirilmiş indirim" senaryosu)
-- [ ] Mock repository (Bölüm 4 arayüzüyle)
-- [ ] **Ana sayfa:** hero + büyük arama, canlı fırsat sayacı, kategori çipleri, "Günün Fırsatları" ızgarası, "En Çok Düşenler", "Kategorilere Göre İndirimler"
-- [ ] **Arama sonuçları:** filtreler (kategori, marka, beden, renk, fiyat aralığı, "sadece gerçek fırsatlar"), sıralama, mobilde alttan açılan filtre paneli
-- [ ] **Ürün detay:** görsel, mağaza fiyat tablosu (en ucuz vurgulu, "Mağazaya Git" butonu), beden/renk seçimi, Fiyat Nabzı grafiği (30/90 gün), İndirim Skoru halka göstergesi, akıllı etiketler
-- [ ] **Kategori sayfası** ve **Fırsatlar sayfası**
-- [ ] Boş durum, yükleniyor (skeleton) ve hata ekranları
-- [ ] `deal-score.ts` + birim testleri
-- [ ] Sitenin üstünde ince **"Demo veriler gösteriliyor"** bandı
+### Faz 1 — Arayüz ve Örnek Veri ✅ (bitti, canlıda; ayrıca menü, başa dön düğmesi ve arama önerileri eklendi)
+- [x] `src/data/mock/`: ~40 giyim ürünü, 5 örnek mağaza, her ürün için 2–5 teklif, 90 günlük üretilmiş fiyat geçmişi (bazıları bilerek "şişirilmiş indirim" senaryosu)
+- [x] Mock repository (Bölüm 4 arayüzüyle)
+- [x] **Ana sayfa:** hero + büyük arama, canlı fırsat sayacı, kategori çipleri, "Günün Fırsatları" ızgarası, "En Çok Düşenler", "Kategorilere Göre İndirimler"
+- [x] **Arama sonuçları:** filtreler (kategori, marka, beden, renk, fiyat aralığı, "sadece gerçek fırsatlar"), sıralama, mobilde alttan açılan filtre paneli
+- [x] **Ürün detay:** görsel, mağaza fiyat tablosu (en ucuz vurgulu, "Mağazaya Git" butonu), beden/renk seçimi, Fiyat Nabzı grafiği (30/90 gün), İndirim Skoru halka göstergesi, akıllı etiketler
+- [x] **Kategori sayfası** ve **Fırsatlar sayfası**
+- [x] Boş durum, yükleniyor (skeleton) ve hata ekranları
+- [x] `deal-score.ts` + birim testleri
+- [x] Sitenin üstünde ince **"Demo veriler gösteriliyor"** bandı
 - **Bitti sayılır:** iPhone'da tüm sayfalar akıcı, arama ve filtreler örnek veriyle çalışıyor.
 
 ### Faz 2 — Veritabanı (Supabase)

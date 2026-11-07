@@ -24,7 +24,7 @@ export function Sparkline({
       ? "var(--deal)"
       : tone === "muted"
         ? "var(--muted)"
-        : "var(--accent)";
+        : "var(--sage)";
   return (
     <svg
       viewBox={`0 0 ${w} ${h}`}

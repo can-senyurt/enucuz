@@ -235,8 +235,10 @@ export function ProductHero({ product }: { product: ProductDetail }) {
                 className={`rounded-3xl border p-4 ${
                   isCheapest
                     ? "border-deal bg-deal/8"
-                    : "border-line bg-surface"
-                } ${available ? "" : "opacity-60"}`}
+                    : available
+                      ? "border-line bg-surface"
+                      : "border-line bg-ink/[0.03] border-dashed"
+                }`}
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
@@ -245,7 +247,7 @@ export function ProductHero({ product }: { product: ProductDetail }) {
                         {offer.store.logoText}
                       </span>
                       {isCheapest && (
-                        <span className="bg-deal text-on-accent rounded-full px-2.5 py-1 text-xs font-bold">
+                        <span className="bg-deal/15 text-deal-text rounded-full px-2.5 py-1 text-xs font-bold">
                           En ucuz
                         </span>
                       )}
@@ -256,7 +258,9 @@ export function ProductHero({ product }: { product: ProductDetail }) {
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="price text-xl font-semibold tracking-tight">
+                    <p
+                      className={`price text-xl font-semibold tracking-tight ${available ? "" : "text-muted"}`}
+                    >
                       {formatPrice(offer.price)}
                     </p>
                     {offer.listPrice !== null &&
