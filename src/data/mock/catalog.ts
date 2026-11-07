@@ -122,6 +122,8 @@ export interface ProductSpec {
   colors: string[];
   scenario: Scenario;
   description: string;
+  /** Optional demo photo (4:5, in /public). Shown for the first colour only. */
+  photo?: string;
 }
 
 export const products: ProductSpec[] = [
@@ -138,6 +140,7 @@ export const products: ProductSpec[] = [
     scenario: "real",
     description:
       "Yumuşak dokulu suni deri, fermuarlı kapanış ve kesim detaylı yaka. Günlük kombinlerin vazgeçilmezi.",
+    photo: "/demo/siyah-deri-ceket-kadin.jpg",
   },
   {
     slug: "oversize-kaban-kadin",
@@ -360,15 +363,17 @@ export const products: ProductSpec[] = [
   },
   {
     slug: "yun-kazak-erkek",
-    title: "Yün Karışımlı Kazak",
+    title: "Yarım Fermuarlı Yün Kazak",
     brandSlug: "kum-kil",
     categorySlug: "erkek-ust",
     gender: "erkek",
     kind: "shirt",
     baseTl: 1290,
-    colors: ["Gri", "Bordo"],
+    colors: ["Haki", "Gri"],
     scenario: "hiked",
-    description: "Boğazlı yaka, sıcak tutan yün karışımlı kazak.",
+    description:
+      "Yarım fermuarlı, dik yakalı, balıkçı örgü yün karışımlı kazak. Rahat kalıp, sıcak tutar.",
+    photo: "/demo/yun-kazak-erkek.jpg",
   },
 
   // ----- Ayakkabı -----

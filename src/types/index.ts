@@ -79,6 +79,8 @@ export interface ProductCard {
   categorySlug: string;
   gender: Gender;
   imageKind: ImageKind;
+  /** Demo photo (4:5) or null: then the generated illustration is shown. */
+  photoUrl: string | null;
   /** Colour names; the first one is used for the illustration. */
   colors: string[];
   lowestPrice: number;
@@ -183,6 +185,7 @@ export interface MenuData {
     price: number;
     imageKind: ImageKind;
     color: string;
+    photoUrl: string | null;
     label: DealLabel;
   }[];
   totals: { products: number; deals: number; inflated: number };
@@ -197,6 +200,7 @@ export interface SuggestResult {
     price: number;
     imageKind: ImageKind;
     color: string;
+    photoUrl: string | null;
   }[];
   categories: { slug: string; name: string; count: number }[];
   brands: { slug: string; name: string; count: number }[];

@@ -256,6 +256,7 @@ function buildProduct(spec: ProductSpec, index: number): GeneratedProduct {
     categorySlug: category.slug,
     gender: spec.gender,
     imageKind: spec.kind,
+    photoUrl: spec.photo ?? null,
     colors: spec.colors,
     lowestPrice: best.price,
     listPrice: best.listPrice,

@@ -39,6 +39,7 @@ export async function getMenuData(): Promise<MenuData> {
       price: p.lowestPrice,
       imageKind: p.imageKind,
       color: p.colors[0],
+      photoUrl: p.photoUrl,
       label: p.deal.label,
     })),
     totals: {

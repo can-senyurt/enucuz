@@ -335,6 +335,7 @@ export const mockRepository: ProductRepository = {
         price: p.card.lowestPrice,
         imageKind: p.card.imageKind,
         color: p.card.colors[0],
+        photoUrl: p.card.photoUrl,
       }));
 
     const counts = await mockRepository.getCategoryCounts();

@@ -1,3 +1,5 @@
+import { existsSync, readFileSync } from "node:fs";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { getRepository } from "@/data/repository";
 import { getGeneratedProducts } from "@/data/mock/generate";
@@ -163,5 +165,75 @@ describe("suggestions", () => {
 
   it("never returns more products than the limit", async () => {
     expect((await repo.suggest("a", 2)).products.length).toBeLessThanOrEqual(2);
+  });
+});
+
+/** Reads width/height from a JPEG file's header (no image library needed). */
+function jpegSize(file: string): { width: number; height: number } {
+  const buf = readFileSync(file);
+  let i = 2;
+  while (i < buf.length) {
+    if (buf[i] !== 0xff) throw new Error("not a JPEG marker stream");
+    const marker = buf[i + 1];
+    const length = buf.readUInt16BE(i + 2);
+    // SOF0..SOF3, SOF5..SOF7, SOF9..SOF11, SOF13..SOF15 hold the frame size
+    if (
+      marker >= 0xc0 &&
+      marker <= 0xcf &&
+      ![0xc4, 0xc8, 0xcc].includes(marker)
+    ) {
+      return {
+        height: buf.readUInt16BE(i + 5),
+        width: buf.readUInt16BE(i + 7),
+      };
+    }
+    i += 2 + length;
+  }
+  throw new Error("no frame header found");
+}
+
+describe("demo photos", () => {
+  const withPhoto = getGeneratedProducts().filter((p) => p.card.photoUrl);
+
+  it("exactly the two sample products have a photo", () => {
+    expect(withPhoto.map((p) => p.spec.slug).sort()).toEqual([
+      "siyah-deri-ceket-kadin",
+      "yun-kazak-erkek",
+    ]);
+    const others = getGeneratedProducts().filter((p) => !p.card.photoUrl);
+    expect(others.length).toBe(38);
+  });
+
+  it("each photo file exists and is 4:5 like the image frames", () => {
+    for (const p of withPhoto) {
+      const file = path.join(
+        process.cwd(),
+        "public",
+        p.card.photoUrl as string,
+      );
+      expect(existsSync(file), `${file} is missing`).toBe(true);
+      const { width, height } = jpegSize(file);
+      expect(width / height, p.spec.slug).toBeCloseTo(0.8, 2);
+    }
+  });
+
+  it("photos are small enough for phones (under 150 KB each)", () => {
+    for (const p of withPhoto) {
+      const file = path.join(
+        process.cwd(),
+        "public",
+        p.card.photoUrl as string,
+      );
+      expect(readFileSync(file).length).toBeLessThan(150 * 1024);
+    }
+  });
+
+  it("the photo products carry the photo through suggestions and the detail view", async () => {
+    const detail = await repo.getBySlug("siyah-deri-ceket-kadin");
+    expect(detail?.photoUrl).toBe("/demo/siyah-deri-ceket-kadin.jpg");
+    const s = await repo.suggest("deri ceket");
+    expect(
+      s.products.find((x) => x.slug === "siyah-deri-ceket-kadin")?.photoUrl,
+    ).toBe("/demo/siyah-deri-ceket-kadin.jpg");
   });
 });

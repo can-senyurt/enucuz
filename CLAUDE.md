@@ -19,8 +19,7 @@
 
 ## 0.5 Güncel Durum (yeni oturumda ÖNCE bunu oku)
 
-- **Bitti:** Faz 0 ve Faz 1, `main`'e birleşti ve canlıda: https://enucuz.vercel.app (Vercel girişi + VPN gerekir).
-- **Bekleyen onay:** Yeşil renk paleti (Bölüm 3.1) `claude/site-project-analysis-r9zxai` dalında hazır; proje sahibi önizlemede beğenirse `main`'e alınır.
+- **Bitti ve canlıda** (https://enucuz.vercel.app, Vercel girişi + VPN gerekir): Faz 0, Faz 1, yeşil renk paleti ve 2 demo ürün fotoğrafı.
 - **Sırada:** Faz 2 (Supabase). Proje sahibinin onayını bekle; önce `docs/HANDOFF.md` dosyasını oku.
 - **Ayrıntılı devir notu:** `docs/HANDOFF.md` (neler yapıldı, kararlar, tuzaklar, Vercel/GitHub bilgileri, test araçları, Faz 2 planı).
 - **Test araçları:** `scripts/qa/` (Playwright + axe denetimleri), `npm test` (birim testleri).
@@ -298,6 +297,7 @@ Her faz bitiminde Claude: **(1)** kodu commit + push eder, **(2)** Vercel önizl
 ## 9. Hukuki ve Etik Kurallar
 
 - Mağaza logoları ve marka görselleri izin alınmadan kullanılmaz; mağaza adları metin rozeti olarak gösterilir.
+- **Demo fotoğraflar** (`public/demo/`, 2 adet) proje sahibinin verdiği örneklerdir; **lisansı doğrulanmamıştır**. Site herkese açılmadan önce kendi çekimleri ya da lisanslı görsellerle değiştirilir.
 - **Demo veriler canlı yayında gerçek fiyat gibi sunulmaz.** Demo moddayken site üstünde açıkça "Demo veriler" bandı bulunur.
 - Affiliate linkler kullanıcıya açıkça bildirilir.
 - Kişisel veri minimumda tutulur (KVKK). Tıklama kayıtlarında IP veya kimlik saklanmaz.

@@ -16,7 +16,7 @@ import { siteConfig } from "@/lib/config";
 import { formatPrice } from "@/lib/format";
 import { highlightSegments } from "@/lib/search/normalize";
 import type { SuggestResult } from "@/types";
-import { ProductImage } from "./ProductImage";
+import { ProductVisual } from "./ProductVisual";
 
 /**
  * Search box with type-ahead suggestions (products, categories, brands).
@@ -352,11 +352,13 @@ export function SearchBar({
                       tabIndex={-1}
                       className={`${rowBase} min-h-16 py-2 ${rowState(id)}`}
                     >
-                      <span className="from-ink/[0.03] to-ink/[0.08] block size-12 shrink-0 overflow-hidden rounded-xl bg-gradient-to-b p-0.5">
-                        <ProductImage
+                      <span className="from-ink/[0.03] to-ink/[0.08] relative block size-12 shrink-0 overflow-hidden rounded-xl bg-gradient-to-b p-0.5">
+                        <ProductVisual
                           kind={p.imageKind}
                           color={p.color}
                           alt={p.title}
+                          photoUrl={p.photoUrl}
+                          sizes="48px"
                           decorative
                         />
                       </span>

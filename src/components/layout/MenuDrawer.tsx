@@ -18,7 +18,7 @@ import { ArrowRight, Plus } from "lucide-react";
 import { dealShortLabel } from "@/lib/deal-score";
 import { formatPrice } from "@/lib/format";
 import type { MenuData } from "@/types";
-import { ProductImage } from "@/components/ui/ProductImage";
+import { ProductVisual } from "@/components/ui/ProductVisual";
 import { SearchBar } from "@/components/ui/SearchBar";
 
 /**
@@ -224,11 +224,13 @@ export function MenuDrawer({ data }: { data: MenuData }) {
                       onClick={close}
                       className="hover:bg-ink/[0.05] active:bg-ink/[0.08] -mx-2 flex min-h-16 items-center gap-3 rounded-2xl p-2 transition-colors"
                     >
-                      <span className="from-ink/[0.03] to-ink/[0.08] block size-14 shrink-0 overflow-hidden rounded-2xl bg-gradient-to-b p-1">
-                        <ProductImage
+                      <span className="from-ink/[0.03] to-ink/[0.08] relative block size-14 shrink-0 overflow-hidden rounded-2xl bg-gradient-to-b p-1">
+                        <ProductVisual
                           kind={p.imageKind}
                           color={p.color}
                           alt={p.title}
+                          photoUrl={p.photoUrl}
+                          sizes="56px"
                           decorative
                         />
                       </span>

@@ -1,17 +1,18 @@
 # EnUcuz — Devir Notu (yeni oturum için)
 
 > Bu dosya, sohbetin bağlam penceresi dolduğunda yeni bir oturumun kaldığı yerden devam edebilmesi için yazıldı.
-> Önce `CLAUDE.md` (proje kuralları), sonra bu dosya okunur. Son güncelleme: Faz 1 canlıda + yeşil palet dalda onay bekliyor.
+> Önce `CLAUDE.md` (proje kuralları), sonra bu dosya okunur. Son güncelleme: Faz 1, yeşil palet ve 2 demo fotoğraf canlıda; sırada Faz 2.
 
 ## 1. Durum özeti
 
-| Faz                                                               | Durum                                                                                              |
-| ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| 0 Kurulum                                                         | ✅ canlıda                                                                                         |
-| 1 Arayüz + örnek veri (+ menü, başa dön düğmesi, arama önerileri) | ✅ canlıda (`main`, PR #1 birleşti, `1f925ee`)                                                     |
-| Yeşil renk paleti (Starbucks'a benzemeyen, kendi kimliğimiz)      | 🟡 `claude/site-project-analysis-r9zxai` dalında, önizlemede; **proje sahibinin onayı bekleniyor** |
-| 2 Veritabanı (Supabase)                                           | ⏭️ sıradaki, proje sahibi "Faz 2'ye geç" demeden başlama                                           |
-| 3–7                                                               | planlandı (CLAUDE.md Bölüm 7)                                                                      |
+| Faz                                                               | Durum                                                                                               |
+| ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| 0 Kurulum                                                         | ✅ canlıda                                                                                          |
+| 1 Arayüz + örnek veri (+ menü, başa dön düğmesi, arama önerileri) | ✅ canlıda (`main`, PR #1 birleşti, `1f925ee`)                                                      |
+| Yeşil renk paleti (Starbucks'a benzemeyen, kendi kimliğimiz)      | ✅ canlıda (`main`)                                                                                 |
+| Demo fotoğraflar: kadın deri ceket + erkek kazak                  | ✅ canlıda; **lisansı doğrulanmamış, herkese açmadan önce değiştir** (bkz. `public/demo/README.md`) |
+| 2 Veritabanı (Supabase)                                           | ⏭️ sıradaki, proje sahibi "Faz 2'ye geç" demeden başlama                                            |
+| 3–7                                                               | planlandı (CLAUDE.md Bölüm 7)                                                                       |
 
 Canlı site: https://enucuz.vercel.app (Vercel girişi + proje sahibi için **VPN** gerekir; `vercel.app` operatörde engelli gibi davranıyor).
 
@@ -29,7 +30,7 @@ Canlı site: https://enucuz.vercel.app (Vercel girişi + proje sahibi için **VP
 - **Commit biçimi:** Conventional Commits + sistemin istediği `Co-Authored-By` / `Claude-Session` satırları. PR açma: yalnızca proje sahibi isterse.
 - **Vercel:** proje `enucuz`, id `prj_fe523jEoDKgybC0VE1YYTU4PfSAf`, takım id `team_5n1LX281T7d4AifQLHAAyzmA` (`cansenyurt30-1659s-projects`), Hobby plan. Production adresi `enucuz.vercel.app`. Dal önizleme adresi: `enucuz-git-claude-site-proje-dc7e27-cansenyurt30-1659s-projects.vercel.app`.
 - **Vercel MCP:** ilk kullanımda `authorize_team_access` bir link verir, proje sahibi onaylar. Kullanılan araçlar: `list_deployments`, `get_deployment`, `list_deployment_events` (build günlüğü), `create_deployment` (önizleme için `gitSource: {type:"github", org, repo, ref, sha}`, `target` verme = önizleme). `web_fetch_vercel_url` korumayı aşmak için **paylaşım linki üretir**, izinsiz kullanma.
-- **Otomatik deploy:** `main`'e birleşme → Production kendiliğinden. Dal push'u bazen önizleme üretmedi (Hobby planda yazarı "Claude" olan commit'ler engellenebilir). Üretmezse `create_deployment` ile elle başlat. Deploy durumunu mutlaka doğrula (`get_deployment` → `READY`).
+- **Otomatik deploy:** `main`'e birleşme → Production kendiliğinden. Dal push'u bazen önizleme üretmedi (Hobby planda yazarı "Claude" olan commit'ler engellenebilir). Üretmezse `create_deployment` ile elle başlat. Deploy durumunu mutlaka doğrula (`get_deployment` → `READY`). `main`'e doğrudan push (PR'sız) sonrası Production deploy'u görünmezse `create_deployment` ile `target: "production"` ve `gitSource` (ref `main`, sha) vererek elle başlat.
 - **Deployment koruması (SSO) açık:** adresleri yalnızca Vercel hesabına girişli biri görür. Kapatmak proje sahibinin kararı; veriler kurgusal olduğu için şimdilik açık kalsın.
 
 ## 4. Neler yapıldı (dosya haritası)
@@ -53,13 +54,15 @@ scripts/qa/         Playwright/axe denetim betikleri (README'ye bak)
 
 ## 5. Önemli kararlar
 
-- **Veri kurgusal** (CLAUDE.md Bölüm 9): sahte mağaza/marka adları, ürün görselleri SVG çizim (`ProductImage`), fiyatlar uydurma. Demo bandı `DATA_SOURCE` `mock` iken görünür (`isDemoData` in `config.ts`).
+- **Veri kurgusal** (CLAUDE.md Bölüm 9): sahte mağaza/marka adları, ürün görselleri SVG çizim (`ProductImage`), fiyatlar uydurma. İstisna: proje sahibinin verdiği 2 örnek fotoğraf (aşağıda). Demo bandı `DATA_SOURCE` `mock` iken görünür (`isDemoData` in `config.ts`).
 - **Repository Pattern:** sayfalar yalnızca `getRepository()` kullanır. Fiyatlar **kuruş cinsinden tam sayı**; biçimleme yalnızca `lib/format.ts` (`₺` öncesi bölünmeyen boşluk).
 - **Deterministik mock:** `generate.ts` sabit tohumlu; "bugün" = `DEMO_TODAY = "2026-11-07"` (sabit saat). `Date.now()`/`Math.random()` kullanma (aşağıdaki `cacheComponents` kuralı).
 - **Dış girdi Zod ile doğrulanır** (`search/params.ts`, `/api/oner`).
 - **Başlıksız (hero) sayfada animasyon yok:** ilk boyama sabit olmalı (iOS tuzağı).
 - **Renkler:** yalnızca `globals.css` token'ları (yeşil palet, CLAUDE.md 3.1). `on-accent` açık modda beyaz, koyu modda koyu yeşil. Yeni renk eklerken `scripts/qa/contrast.js` çalıştır.
 - Framer Motion/Recharts **eklenmedi**: animasyonlar CSS, grafik elle SVG. Bağımlılıklar: lucide-react, zod; dev: vitest, prettier(+tailwind eklentisi). `@types/node` 22 (vitest şartı).
+
+- **Demo fotoğraflar:** `src/data/mock/catalog.ts` içinde `photo?: string` alanı; yalnızca `siyah-deri-ceket-kadin` ve `yun-kazak-erkek` dolu (dosyalar `public/demo/*.jpg`, **4:5**, EXIF temizlenmiş, ~65–75 KB). `ProductVisual` fotoğraf varsa `next/image` (`fill`, `object-cover`) gösterir, yoksa SVG çizim. Fotoğraf `photoUrl` olarak kart, ürün detayı, menü ve arama önerisi modellerinde taşınır. Ürün sayfasında fotoğraf **yalnızca ilk renk** için görünür (fotoğraftaki renk); başka renk seçilirse o renkte çizim gösterilir. Yeni fotoğraf hazırlamak: `python3 -I scripts/crop-demo-photo.py <kaynak> <hedef> <üstten-px>` (4:5 kırpar, metadata siler); test (`tests/mock-data.test.ts`) oran, boyut (<150 KB) ve dosya varlığını denetler.
 
 ## 6. Tuzaklar (kaçın)
 
@@ -69,11 +72,14 @@ scripts/qa/         Playwright/axe denetim betikleri (README'ye bak)
 4. **Tailwind v4:** `rotate`/`translate` ayrı CSS özellikleridir (`getComputedStyle(...).rotate`); odak halkası `@layer base` içinde olmalı, yoksa `outline-none` ezilir; `overflow-x-auto` içindeki `sr-only` (absolute) üst öğe `relative` değilse sayfayı yana genişletir (kartlar `relative`).
 5. **Prettier + tailwind eklentisi sınıf sırasını değiştirir:** metin değiştiren betikler gerçek metni okumalı. Edit/Write araçları dosya değiştikten sonra yeniden `Read` ister.
 6. **iOS'ta blur ile kapatma güvenilmez:** öneri listesi `document pointerdown` ile kapanır.
-7. **Playwright:** sabit öğeler için `scrollIntoView` sayfayı kaydırıp çubuğu gizleyebilir; `dispatchEvent('click')` kullan. WebKit kurulu değil, Safari'ye özgü hatalar yalnızca proje sahibinin ekran görüntüsünden anlaşılır.
-8. Lint: `set-state-in-effect` kuralı var → client-only durum için `useSyncExternalStore`, rota değişimini "render sırasında önceki değerle karşılaştır" kalıbıyla yakala.
+7. **Fotoğraflar:** `next/image` `fill` kullanıyorsan üst öğe `relative` ve ölçülü olmalı (kart/küçük resim kapsayıcılarında `relative` var). Kare olmayan fotoğraf kırpılırken kadraj yüzü korumalı (üstten kırp).
+8. **Playwright:** sabit öğeler için `scrollIntoView` sayfayı kaydırıp çubuğu gizleyebilir; `dispatchEvent('click')` kullan. WebKit kurulu değil, Safari'ye özgü hatalar yalnızca proje sahibinin ekran görüntüsünden anlaşılır.
+9. Lint: `set-state-in-effect` kuralı var → client-only durum için `useSyncExternalStore`, rota değişimini "render sırasında önceki değerle karşılaştır" kalıbıyla yakala.
 
 ## 7. Bilinen eksikler / fikirler
 
+- **Demo fotoğrafların lisansı doğrulanmamış** (proje sahibi bir Pinterest benzeri kaynaktan verdi). Site giriş korumalı olduğu için sorun değil; **herkese açmadan önce** kendi çekimleri ya da lisanslı görsellerle değiştirilmeli (CLAUDE.md Bölüm 9). Faz 2'de görseller Supabase Storage'a taşınıp `products.image_url` kullanılacak.
+- Karttaki skor rozeti **alt-orta**da durur: fotoğraflarda yüz üstte olur, rozet yüzü kapatmasın. Fotoğraf eklerken bu kuralı koru.
 - Filtre uygulayınca adreste boş parametreler (`kategori=&min=&max=`); çalışmayı bozmuyor.
 - "Mağazaya Git" demo uyarısı gösterir (gerçek yönlendirme Faz 6, `/go/[offerId]`).
 - "N dk önce güncellendi" demo saatine göre sabit; gerçek veride istemci tarafı göreli zaman bileşeni gerekecek.

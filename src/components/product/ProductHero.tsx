@@ -7,6 +7,7 @@ import { buildSmartLabels } from "@/lib/smart-labels";
 import { dealLabelText } from "@/lib/deal-score";
 import type { ProductDetail } from "@/types";
 import { DealRing } from "@/components/ui/DealRing";
+import Image from "next/image";
 import { ProductImage } from "@/components/ui/ProductImage";
 
 const TONE_STYLE = {
@@ -89,19 +90,33 @@ export function ProductHero({ product }: { product: ProductDetail }) {
 
   const best = rows.find((r) => r.isCheapest);
 
+  // The photo shows the first colour; other colours fall back to the illustration.
+  const showPhoto = product.photoUrl !== null && color === product.colors[0];
+
   return (
     <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
       {/* Image */}
       <div className="bg-surface border-line relative mx-auto aspect-[4/5] w-full max-w-md overflow-hidden rounded-[2rem] border lg:max-w-none">
-        <div className="animate-float h-full w-full">
-          <ProductImage
-            kind={product.imageKind}
-            color={color}
-            alt={`${product.title}, ${color}`}
+        {showPhoto && product.photoUrl ? (
+          <Image
+            src={product.photoUrl}
+            alt={`${product.title}, ${color} (örnek fotoğraf)`}
+            fill
+            priority
+            sizes="(min-width: 1152px) 560px, (min-width: 1024px) 45vw, (min-width: 448px) 448px, 100vw"
+            className="object-cover"
           />
-        </div>
+        ) : (
+          <div className="animate-float h-full w-full">
+            <ProductImage
+              kind={product.imageKind}
+              color={color}
+              alt={`${product.title}, ${color}`}
+            />
+          </div>
+        )}
         <span className="bg-ink/70 text-bg absolute bottom-4 left-4 rounded-full px-3 py-1 text-xs font-medium backdrop-blur">
-          Örnek çizim · {color}
+          {showPhoto ? "Örnek fotoğraf" : `Örnek çizim · ${color}`}
         </span>
       </div>
 

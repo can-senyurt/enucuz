@@ -3,7 +3,7 @@ import { TrendingDown } from "lucide-react";
 import { formatPrice } from "@/lib/format";
 import type { ProductCard as ProductCardData } from "@/types";
 import { DealBadge } from "@/components/ui/DealBadge";
-import { ProductImage } from "@/components/ui/ProductImage";
+import { ProductVisual } from "@/components/ui/ProductVisual";
 import { Sparkline } from "@/components/ui/Sparkline";
 
 export function ProductCard({
@@ -30,13 +30,15 @@ export function ProductCard({
       className="group border-line bg-surface @container relative flex h-full flex-col overflow-hidden rounded-[1.75rem] border shadow-[0_1px_2px_rgb(0_0_0/0.04)] transition-[transform,box-shadow] duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_18px_40px_-12px_rgb(0_0_0/0.18)] active:scale-[0.985] active:duration-100"
     >
       <div className="from-ink/[0.03] to-ink/[0.07] relative aspect-[4/5] overflow-hidden bg-gradient-to-b">
-        <ProductImage
+        <ProductVisual
           kind={product.imageKind}
           color={product.colors[0]}
           alt={`${product.title}, ${product.colors[0]}`}
+          photoUrl={product.photoUrl}
+          sizes="(min-width: 1152px) 280px, (min-width: 768px) 33vw, 50vw"
           className="transition-transform duration-500 ease-out motion-safe:group-hover:scale-[1.06]"
         />
-        <div className="absolute inset-x-3 top-3 flex justify-center">
+        <div className="absolute inset-x-3 bottom-3 flex justify-center">
           <DealBadge deal={deal} compact />
         </div>
       </div>
