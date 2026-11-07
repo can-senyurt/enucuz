@@ -13,13 +13,13 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
-import Form from "next/form";
 import { usePathname } from "next/navigation";
-import { ArrowRight, Plus, Search } from "lucide-react";
+import { ArrowRight, Plus } from "lucide-react";
 import { dealShortLabel } from "@/lib/deal-score";
 import { formatPrice } from "@/lib/format";
 import type { MenuData } from "@/types";
 import { ProductImage } from "@/components/ui/ProductImage";
+import { SearchBar } from "@/components/ui/SearchBar";
 
 /**
  * Site menu in the spirit of apple.com's phone navigation: the header stays,
@@ -40,7 +40,7 @@ const getIsDark = () => document.documentElement.dataset.theme === "dark";
 const subscribeNever = () => () => {};
 
 /** Page regions that must not be reachable while the menu is open. */
-const BACKGROUND_SELECTORS = ["main", "footer"];
+const BACKGROUND_SELECTORS = ["main", "footer", "[data-back-to-top]"];
 
 export function MenuDrawer({ data }: { data: MenuData }) {
   const panelId = useId();
@@ -202,31 +202,10 @@ export function MenuDrawer({ data }: { data: MenuData }) {
         }`}
       >
         <div className="px-6 pt-6 pb-[max(3rem,env(safe-area-inset-bottom))]">
-          {/* Search */}
-          <Form
-            action="/ara"
-            role="search"
-            onSubmit={close}
-            style={item()}
-            className="menu-item bg-ink/[0.06] focus-within:bg-ink/[0.09] flex h-12 items-center gap-2.5 rounded-xl px-3.5 transition-colors"
-          >
-            <Search
-              className="text-muted size-[18px] shrink-0"
-              aria-hidden="true"
-            />
-            <label htmlFor={`${panelId}-q`} className="sr-only">
-              Ürün ara
-            </label>
-            <input
-              id={`${panelId}-q`}
-              name="q"
-              type="search"
-              placeholder="EnUcuz'da ara"
-              autoComplete="off"
-              enterKeyHint="search"
-              className="placeholder:text-muted h-full min-w-0 flex-1 appearance-none bg-transparent text-base outline-none focus:outline-none focus-visible:outline-none"
-            />
-          </Form>
+          {/* Search (with type-ahead suggestions) */}
+          <div style={item()} className="menu-item">
+            <SearchBar variant="menu" onNavigate={close} />
+          </div>
 
           {/* Primary list: big, bold, no icons */}
           <ul className="mt-6" aria-label="Bölümler">

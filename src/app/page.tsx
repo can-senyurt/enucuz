@@ -71,7 +71,7 @@ export default async function Home() {
     <>
       {/* ---------- Hero ---------- */}
       {/* Static page: no entrance animation here, so the first paint is final. */}
-      <section className="hero-bg relative overflow-hidden">
+      <section className="hero-bg relative">
         <div className="mx-auto flex min-h-[74dvh] max-w-6xl flex-col items-center justify-center px-4 py-14 text-center">
           <Link
             href="/firsatlar"

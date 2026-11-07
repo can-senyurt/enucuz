@@ -65,3 +65,51 @@ export function matchToken(token: string, words: string[]): number {
   }
   return best;
 }
+
+/**
+ * Splits `text` into pieces and marks the parts that match the typed query, so
+ * the UI can bold them. Matching ignores case and Turkish accents ("ayak"
+ * highlights "Ayak" in "Spor Ayakkabı"). Works on the original characters, so
+ * the original spelling is always what is shown.
+ */
+export function highlightSegments(
+  text: string,
+  query: string,
+): { text: string; hit: boolean }[] {
+  const chars = Array.from(text);
+  // One folded character per original character, so positions line up.
+  const folded = chars.map((ch) => {
+    const lower = ch.toLocaleLowerCase("tr-TR");
+    const f = TR_FOLD[lower] ?? lower;
+    return f.length === 1 ? f : ch.toLowerCase().charAt(0);
+  });
+  const haystack = folded.join("");
+  const isWordChar = (c: string | undefined) => !!c && /[a-z0-9]/.test(c);
+
+  const marked = new Array<boolean>(chars.length).fill(false);
+  for (const token of tokenize(query)) {
+    // Prefer a match at the start of a word, otherwise the first match anywhere.
+    let at = -1;
+    for (
+      let i = haystack.indexOf(token);
+      i !== -1;
+      i = haystack.indexOf(token, i + 1)
+    ) {
+      if (!isWordChar(haystack[i - 1])) {
+        at = i;
+        break;
+      }
+      if (at === -1) at = i;
+    }
+    if (at !== -1)
+      for (let k = at; k < at + token.length; k++) marked[k] = true;
+  }
+
+  const segments: { text: string; hit: boolean }[] = [];
+  chars.forEach((ch, i) => {
+    const last = segments[segments.length - 1];
+    if (last && last.hit === marked[i]) last.text += ch;
+    else segments.push({ text: ch, hit: marked[i] });
+  });
+  return segments;
+}

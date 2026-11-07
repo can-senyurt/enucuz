@@ -124,3 +124,44 @@ describe("menu data", () => {
     expect(kids.reduce((n, c) => n + counts[c.slug], 0)).toBe(counts.kadin);
   });
 });
+
+describe("suggestions", () => {
+  it("'ayak' suggests shoes, the shoe categories and no unrelated brand", async () => {
+    const r = await repo.suggest("ayak");
+    expect(r.products.length).toBeGreaterThan(0);
+    expect(r.products.length).toBeLessThanOrEqual(4);
+    expect(r.categories.map((c) => c.slug)).toContain("ayakkabi");
+    expect(r.categories.map((c) => c.slug)).toContain("spor-ayakkabi");
+    // "ayak" is not the start of "Ayaz", so that brand must not show up...
+    expect(r.brands.map((b) => b.name)).not.toContain("Ayaz");
+    // ...but typing "ayaz" finds it.
+    expect((await repo.suggest("ayaz")).brands.map((b) => b.name)).toContain(
+      "Ayaz",
+    );
+  });
+
+  it("is case and accent insensitive and tolerates a typo", async () => {
+    const a = await repo.suggest("AYAKKABI");
+    const b = await repo.suggest("ayakkabı");
+    const c = await repo.suggest("ayakabi"); // one letter missing
+    expect(a.products.map((p) => p.slug)).toEqual(
+      b.products.map((p) => p.slug),
+    );
+    expect(c.products.length).toBeGreaterThan(0);
+  });
+
+  it("requires every typed word to match", async () => {
+    const r = await repo.suggest("siyah ceket");
+    expect(r.products[0]?.slug).toBe("siyah-deri-ceket-kadin");
+    expect((await repo.suggest("siyah zzzz")).products).toHaveLength(0);
+  });
+
+  it("returns nothing for an empty query", async () => {
+    const r = await repo.suggest("   ");
+    expect(r).toEqual({ products: [], categories: [], brands: [] });
+  });
+
+  it("never returns more products than the limit", async () => {
+    expect((await repo.suggest("a", 2)).products.length).toBeLessThanOrEqual(2);
+  });
+});

@@ -187,3 +187,17 @@ export interface MenuData {
   }[];
   totals: { products: number; deals: number; inflated: number };
 }
+
+/** Type-ahead results for the search box. */
+export interface SuggestResult {
+  products: {
+    slug: string;
+    title: string;
+    brand: string;
+    price: number;
+    imageKind: ImageKind;
+    color: string;
+  }[];
+  categories: { slug: string; name: string; count: number }[];
+  brands: { slug: string; name: string; count: number }[];
+}

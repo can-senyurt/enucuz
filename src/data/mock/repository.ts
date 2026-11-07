@@ -8,6 +8,7 @@ import type {
   Paginated,
   ProductCard,
   SearchParams,
+  SuggestResult,
 } from "@/types";
 import type { ProductRepository } from "../repository";
 import { categories } from "./catalog";
@@ -299,5 +300,73 @@ export const mockRepository: ProductRepository = {
       result[c.slug] = all.filter((p) => set.has(p.card.categorySlug)).length;
     }
     return result;
+  },
+
+  async suggest(query: string, limit = 4): Promise<SuggestResult> {
+    const tokens = tokenize(query);
+    const empty: SuggestResult = { products: [], categories: [], brands: [] };
+    if (tokens.length === 0) return empty;
+
+    // Every typed word must match (prefix, part of a word, or one typo).
+    const matchAll = (words: string[]): number => {
+      let total = 0;
+      for (const token of tokens) {
+        const score = matchToken(token, words);
+        if (score === 0) return 0;
+        total += score;
+      }
+      return total;
+    };
+
+    const products = getGeneratedProducts()
+      .map((p) => ({ p, rel: relevance(p, tokens) }))
+      .filter(({ rel }) => rel > 0)
+      .sort(
+        (a, b) =>
+          b.rel - a.rel ||
+          scoreOf(b.p.card) - scoreOf(a.p.card) ||
+          a.p.card.lowestPrice - b.p.card.lowestPrice,
+      )
+      .slice(0, limit)
+      .map(({ p }) => ({
+        slug: p.spec.slug,
+        title: p.spec.title,
+        brand: p.brand.name,
+        price: p.card.lowestPrice,
+        imageKind: p.card.imageKind,
+        color: p.card.colors[0],
+      }));
+
+    const counts = await mockRepository.getCategoryCounts();
+    const parentName = new Map(categories.map((c) => [c.id, c.name]));
+    const cats = categories
+      .map((c) => {
+        const own = tokenize(c.name);
+        const parent = c.parentId
+          ? tokenize(parentName.get(c.parentId) ?? "")
+          : [];
+        return { c, rel: matchAll([...own, ...parent]) };
+      })
+      .filter(({ rel, c }) => rel > 0 && (counts[c.slug] ?? 0) > 0)
+      .sort(
+        (a, b) =>
+          b.rel - a.rel || (counts[b.c.slug] ?? 0) - (counts[a.c.slug] ?? 0),
+      )
+      .slice(0, 3)
+      .map(({ c }) => ({
+        slug: c.slug,
+        name: c.name,
+        count: counts[c.slug] ?? 0,
+      }));
+
+    const brandList = await mockRepository.getBrands();
+    const brands = brandList
+      .map((b) => ({ b, rel: matchAll(tokenize(b.name)) }))
+      .filter(({ rel }) => rel > 0)
+      .sort((a, b) => b.rel - a.rel || b.b.productCount - a.b.productCount)
+      .slice(0, 3)
+      .map(({ b }) => ({ slug: b.slug, name: b.name, count: b.productCount }));
+
+    return { products, categories: cats, brands };
   },
 };

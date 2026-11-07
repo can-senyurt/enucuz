@@ -9,6 +9,7 @@ import type {
   ProductCard,
   ProductDetail,
   SearchParams,
+  SuggestResult,
 } from "@/types";
 import { mockRepository } from "./mock/repository";
 
@@ -37,6 +38,8 @@ export interface ProductRepository {
   getBrands(): Promise<BrandStat[]>;
   /** Product count per category slug (a parent includes its children). */
   getCategoryCounts(): Promise<Record<string, number>>;
+  /** Type-ahead suggestions (products, categories, brands) for a partial query. */
+  suggest(query: string, limit?: number): Promise<SuggestResult>;
 }
 
 export function getRepository(): ProductRepository {

@@ -38,6 +38,14 @@ export function ProductHero({ product }: { product: ProductDetail }) {
     return () => clearTimeout(timer);
   }, [notice]);
 
+  // Lets the back-to-top button step above the buy bar while the bar is showing.
+  useEffect(() => {
+    document.body.dataset.buyBar = barVisible ? "on" : "off";
+    return () => {
+      delete document.body.dataset.buyBar;
+    };
+  }, [barVisible]);
+
   // Mobile buy bar: shown while the offers list is out of view.
   useEffect(() => {
     const el = offersRef.current;

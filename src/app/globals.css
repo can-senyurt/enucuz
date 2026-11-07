@@ -118,6 +118,16 @@ body {
     transform: none;
   }
 }
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
 @keyframes float {
   0%,
   100% {
@@ -153,6 +163,10 @@ body {
   animation: fade-up 0.8s cubic-bezier(0.22, 1, 0.36, 1) backwards;
   animation-delay: var(--d, 0ms);
 }
+.animate-pop {
+  transform-origin: top center;
+  animation: pop 0.18s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
 .animate-float {
   animation: float 7s ease-in-out infinite;
 }
@@ -182,6 +196,20 @@ body {
     opacity 0.55s ease calc(var(--i, 0) * 45ms + 180ms),
     transform 0.75s cubic-bezier(0.32, 0.72, 0, 1)
       calc(var(--i, 0) * 45ms + 180ms);
+}
+
+/* Back-to-top button sits above the iPhone home bar, and above the product
+   page's mobile buy bar while that bar is showing (ProductHero sets the flag). */
+.back-to-top {
+  bottom: calc(1rem + env(safe-area-inset-bottom));
+}
+body[data-buy-bar="on"] .back-to-top {
+  bottom: calc(5.5rem + env(safe-area-inset-bottom));
+}
+@media (min-width: 1024px) {
+  body[data-buy-bar="on"] .back-to-top {
+    bottom: calc(1rem + env(safe-area-inset-bottom));
+  }
 }
 
 /* Loading placeholder with a soft moving highlight. */
