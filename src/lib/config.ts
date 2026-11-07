@@ -5,6 +5,8 @@
 export const siteConfig = {
   name: "EnUcuz",
   tagline: "Giyimde gerçek indirimi bul.",
+  /** Same sentence split for the hero, so the middle part can be highlighted. */
+  taglineParts: ["Giyimde ", "gerçek indirimi", " bul."],
   description:
     "Giyim ürünlerinin fiyatlarını mağazalar arasında karşılaştır, en ucuz mağazayı bul ve indirimin gerçek olup olmadığını gör.",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
@@ -19,5 +21,8 @@ export const siteConfig = {
     "Sırt çantası",
   ],
 } as const;
+
+/** True while the site runs on made-up demo data (Phase 0–1, DATA_SOURCE=mock). */
+export const isDemoData = (process.env.DATA_SOURCE ?? "mock") === "mock";
 
 export type SiteConfig = typeof siteConfig;
