@@ -12,9 +12,13 @@ export const siteConfig = {
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
   locale: "tr-TR",
   currency: "TRY",
+  /**
+   * Most searched products, most popular first. Demo order for now; in Phase 4
+   * (trend searches) this list comes from real, anonymous search counts.
+   */
   popularSearches: [
-    "Siyah deri ceket",
     "Spor ayakkabı",
+    "Siyah deri ceket",
     "Kot pantolon",
     "Basic tişört",
     "Kışlık mont",

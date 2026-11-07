@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { Search } from "lucide-react";
 import { siteConfig } from "@/lib/config";
+import { HeaderActions } from "./HeaderActions";
 import { MenuDrawer } from "./MenuDrawer";
 import { getMenuData } from "./menu-data";
 import { ThemeToggle } from "./ThemeToggle";
@@ -33,13 +33,7 @@ export async function Header() {
           >
             Fırsatlar
           </Link>
-          <Link
-            href="/ara"
-            aria-label="Ara"
-            className="hover:bg-ink/5 inline-flex size-11 items-center justify-center rounded-full"
-          >
-            <Search className="size-5" aria-hidden="true" />
-          </Link>
+          <HeaderActions />
           <ThemeToggle />
         </nav>
       </div>

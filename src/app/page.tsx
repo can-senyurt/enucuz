@@ -2,13 +2,12 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { getRepository } from "@/data/repository";
 import { siteConfig } from "@/lib/config";
-import { CATEGORY_ART, DEFAULT_CATEGORY_ART } from "@/lib/category-art";
 import { formatPercent } from "@/lib/format";
 import type { DealLabel, DealScoreResult } from "@/types";
+import { CategoryStories } from "@/components/home/CategoryStories";
 import { ProductCard } from "@/components/product/ProductCard";
 import { ProductGrid } from "@/components/product/ProductGrid";
 import { DealRing } from "@/components/ui/DealRing";
-import { ProductImage } from "@/components/ui/ProductImage";
 import { Reveal } from "@/components/ui/Reveal";
 import { SearchBar } from "@/components/ui/SearchBar";
 import { SectionHeader } from "@/components/ui/SectionHeader";
@@ -53,29 +52,44 @@ const explainers: {
 
 export default async function Home() {
   const repo = getRepository();
-  const [dealCount, categories, deals, drops, index] = await Promise.all([
+  const [dealCount, deals, drops, index] = await Promise.all([
     repo.getDealCount(),
-    repo.getCategories(),
     repo.getDeals({ limit: 8 }),
     repo.getTopDrops({ limit: 8 }),
     repo.getCategoryDealIndex(),
   ]);
-  const topLevel = categories.filter((c) => c.parentId === null);
-  const countBySlug = new Map(
-    index.map((s) => [s.category.slug, s.productCount]),
-  );
   const maxDrop = Math.max(...index.map((i) => i.avgRealDrop), 0.01);
-  const [before, highlight, after] = siteConfig.taglineParts;
 
   return (
     <>
-      {/* ---------- Hero ---------- */}
+      {/* ---------- Hero: search first, right under the header ---------- */}
       {/* Static page: no entrance animation here, so the first paint is final. */}
       <section className="hero-bg relative">
-        <div className="mx-auto flex min-h-[74dvh] max-w-6xl flex-col items-center justify-center px-4 py-14 text-center">
+        <div className="mx-auto flex max-w-6xl flex-col items-center px-4 pt-5 pb-14 text-center sm:pt-8 sm:pb-20">
+          {/* Invisible page title (screen readers, search engines). */}
+          <h1 className="sr-only">{siteConfig.tagline}</h1>
+          <div className="w-full">
+            <SearchBar placeholder="En uygun ürünler?" />
+          </div>
+
+          <nav
+            aria-label="En çok aranan ürünler"
+            className="no-scrollbar mt-4 flex w-full max-w-xl snap-x scroll-px-4 gap-2 overflow-x-auto px-1 pb-1 sm:flex-wrap sm:justify-center"
+          >
+            {siteConfig.popularSearches.map((term) => (
+              <Link
+                key={term}
+                href={`/ara?q=${encodeURIComponent(term)}`}
+                className="border-line bg-surface hover:bg-ink hover:text-bg hover:border-ink inline-flex min-h-11 shrink-0 snap-start items-center rounded-full border px-4 text-sm whitespace-nowrap transition-[background-color,color,border-color,transform] duration-200 active:scale-95"
+              >
+                {term}
+              </Link>
+            ))}
+          </nav>
+
           <Link
             href="/firsatlar"
-            className="border-line bg-surface group mb-7 inline-flex min-h-11 max-w-full items-center gap-2.5 rounded-full border px-4 py-2 text-sm shadow-sm"
+            className="border-line bg-surface group mt-6 inline-flex min-h-11 max-w-full items-center gap-2.5 rounded-full border px-4 py-2 text-sm shadow-sm"
           >
             <span
               className="relative flex size-2.5 shrink-0"
@@ -94,74 +108,11 @@ export default async function Home() {
             />
           </Link>
 
-          <h1 className="max-w-3xl text-[clamp(2.3rem,11.5vw,3.1rem)] leading-[1.03] font-semibold tracking-[-0.04em] text-balance sm:text-7xl lg:text-8xl">
-            {before}
-            <span className="text-gradient-accent">{highlight}</span>
-            {after}
-          </h1>
-          <p className="text-muted mt-6 max-w-xl text-lg text-pretty sm:text-xl">
-            {siteConfig.description}
-          </p>
-
-          <div className="mt-10 w-full">
-            <SearchBar />
+          {/* Category story circles */}
+          <div aria-label="Kategoriler" role="region" className="mt-9 w-full">
+            <CategoryStories />
           </div>
-
-          <nav
-            aria-label="Popüler aramalar"
-            className="no-scrollbar mt-5 flex w-full max-w-xl snap-x scroll-px-4 gap-2 overflow-x-auto px-1 pb-1 sm:flex-wrap sm:justify-center"
-          >
-            {siteConfig.popularSearches.map((term) => (
-              <Link
-                key={term}
-                href={`/ara?q=${encodeURIComponent(term)}`}
-                className="border-line bg-surface hover:bg-ink hover:text-bg hover:border-ink inline-flex min-h-11 shrink-0 snap-start items-center rounded-full border px-4 text-sm whitespace-nowrap transition-[background-color,color,border-color,transform] duration-200 active:scale-95"
-              >
-                {term}
-              </Link>
-            ))}
-          </nav>
         </div>
-      </section>
-
-      {/* ---------- Categories ---------- */}
-      <section
-        aria-label="Kategoriler"
-        className="mx-auto max-w-6xl px-4 pb-16 sm:pb-24"
-      >
-        <Reveal>
-          <ul className="no-scrollbar edge-fade-x relative -mx-4 flex snap-x scroll-px-4 gap-3 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-5 sm:overflow-visible sm:[mask-image:none] sm:px-0">
-            {topLevel.map((c) => {
-              const art = CATEGORY_ART[c.slug] ?? DEFAULT_CATEGORY_ART;
-              return (
-                <li key={c.id} className="w-36 shrink-0 snap-start sm:w-auto">
-                  <Link
-                    href={`/kategori/${c.slug}`}
-                    className="border-line bg-surface group flex h-full flex-col overflow-hidden rounded-3xl border transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-[0_14px_30px_-14px_rgb(0_0_0/0.2)] active:scale-[0.97]"
-                  >
-                    <span className="from-ink/[0.03] to-ink/[0.07] block h-28 overflow-hidden bg-gradient-to-b p-2">
-                      <ProductImage
-                        kind={art.kind}
-                        color={art.color}
-                        alt={c.name}
-                        decorative
-                        className="scale-[1.12] transition-transform duration-500 ease-out group-hover:scale-[1.25] group-hover:-rotate-3"
-                      />
-                    </span>
-                    <span className="block p-3.5">
-                      <span className="block text-base font-semibold tracking-tight">
-                        {c.name}
-                      </span>
-                      <span className="text-muted price block text-xs">
-                        {countBySlug.get(c.slug) ?? 0} ürün
-                      </span>
-                    </span>
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </Reveal>
       </section>
 
       {/* ---------- Günün Fırsatları ---------- */}
