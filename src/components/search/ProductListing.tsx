@@ -247,8 +247,8 @@ export async function ProductListing({
 export function ListingSkeleton() {
   return (
     <div aria-busy="true">
-      <div className="bg-ink/5 mb-6 h-14 w-full max-w-xl animate-pulse rounded-full" />
-      <div className="bg-ink/5 mb-4 h-5 w-24 animate-pulse rounded" />
+      <div className="skeleton mb-6 h-14 w-full max-w-xl rounded-full" />
+      <div className="skeleton mb-4 h-5 w-24 rounded-full" />
       <ProductGridSkeleton count={8} />
     </div>
   );

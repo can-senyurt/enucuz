@@ -141,3 +141,12 @@ export const dealLabelText: Record<DealLabel, string> = {
   inflated: "Dikkat: İndirim şişirilmiş olabilir",
   insufficient: "Yeterli veri yok",
 };
+
+/** Compact labels for small badges on product cards. */
+export const dealShortLabel: Record<DealLabel, string> = {
+  "real-deal": "Gerçek Fırsat",
+  good: "İyi Fiyat",
+  normal: "Normal",
+  inflated: "Şişirilmiş olabilir",
+  insufficient: "Yeterli veri yok",
+};

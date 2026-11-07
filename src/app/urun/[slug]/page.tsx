@@ -6,6 +6,7 @@ import { formatPrice } from "@/lib/format";
 import { PriceChart } from "@/components/product/PriceChart";
 import { ProductGrid } from "@/components/product/ProductGrid";
 import { ProductHero } from "@/components/product/ProductHero";
+import { Reveal } from "@/components/ui/Reveal";
 
 export async function generateStaticParams() {
   const slugs = await getRepository().getAllProductSlugs();
@@ -59,46 +60,50 @@ export default async function ProductPage({
 
       <ProductHero product={product} />
 
-      <section
-        aria-labelledby="fiyat-nabzi"
-        className="border-line bg-surface mt-12 rounded-[2rem] border p-5 sm:p-8"
-      >
-        <h2
-          id="fiyat-nabzi"
-          className="mb-5 text-2xl font-semibold tracking-tight"
+      <Reveal className="mt-12">
+        <section
+          aria-labelledby="fiyat-nabzi"
+          className="border-line bg-surface rounded-[2rem] border p-5 sm:p-8"
         >
-          Fiyat Nabzı
-        </h2>
-        <PriceChart
-          history30={product.history30}
-          history90={product.history90}
-        />
-      </section>
-
-      <section
-        aria-labelledby="urun-bilgisi"
-        className="mt-12 grid gap-8 md:grid-cols-2"
-      >
-        <div>
           <h2
-            id="urun-bilgisi"
-            className="text-2xl font-semibold tracking-tight"
+            id="fiyat-nabzi"
+            className="mb-5 text-2xl font-semibold tracking-tight"
           >
-            Ürün hakkında
+            Fiyat Nabzı
           </h2>
-          <p className="text-muted mt-3 text-pretty">{product.description}</p>
-        </div>
-        <dl className="border-line bg-surface grid grid-cols-2 gap-x-4 gap-y-3 rounded-3xl border p-5 text-sm">
-          <dt className="text-muted">Marka</dt>
-          <dd className="font-medium">{product.brand}</dd>
-          <dt className="text-muted">Kategori</dt>
-          <dd className="font-medium">{product.categoryName}</dd>
-          <dt className="text-muted">Model kodu</dt>
-          <dd className="price font-medium">{product.modelCode}</dd>
-          <dt className="text-muted">Renkler</dt>
-          <dd className="font-medium">{product.colors.join(", ")}</dd>
-        </dl>
-      </section>
+          <PriceChart
+            history30={product.history30}
+            history90={product.history90}
+          />
+        </section>
+      </Reveal>
+
+      <Reveal className="mt-12">
+        <section
+          aria-labelledby="urun-bilgisi"
+          className="grid gap-8 md:grid-cols-2"
+        >
+          <div>
+            <h2
+              id="urun-bilgisi"
+              className="text-2xl font-semibold tracking-tight"
+            >
+              Ürün hakkında
+            </h2>
+            <p className="text-muted mt-3 text-pretty">{product.description}</p>
+          </div>
+          <dl className="border-line bg-surface grid grid-cols-2 gap-x-4 gap-y-3 rounded-3xl border p-5 text-sm">
+            <dt className="text-muted">Marka</dt>
+            <dd className="font-medium">{product.brand}</dd>
+            <dt className="text-muted">Kategori</dt>
+            <dd className="font-medium">{product.categoryName}</dd>
+            <dt className="text-muted">Model kodu</dt>
+            <dd className="price font-medium">{product.modelCode}</dd>
+            <dt className="text-muted">Renkler</dt>
+            <dd className="font-medium">{product.colors.join(", ")}</dd>
+          </dl>
+        </section>
+      </Reveal>
 
       {similar.length > 0 && (
         <section aria-labelledby="benzer" className="mt-16">

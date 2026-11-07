@@ -1,31 +1,40 @@
-import { dealLabelText } from "@/lib/deal-score";
+import { dealLabelText, dealShortLabel } from "@/lib/deal-score";
 import type { DealScoreResult } from "@/types";
 
-const STYLE: Record<DealScoreResult["label"], string> = {
-  "real-deal": "bg-deal/15 text-deal-text",
-  good: "bg-deal/10 text-deal-text",
-  normal: "bg-ink/8 text-muted",
-  inflated: "bg-warn/20 text-warn-text",
-  insufficient: "bg-ink/8 text-muted",
+const DOT: Record<DealScoreResult["label"], string> = {
+  "real-deal": "bg-deal",
+  good: "bg-deal/60",
+  normal: "bg-muted",
+  inflated: "bg-warn",
+  insufficient: "bg-muted/60",
 };
 
-/** Label pill. The text always carries the meaning; colour is only a hint. */
+/**
+ * Small frosted pill with a coloured dot. The text always carries the
+ * meaning; the dot colour is only a hint. Sits well on any image tint.
+ */
 export function DealBadge({
   deal,
-  showScore = true,
+  compact = false,
   className = "",
 }: {
   deal: DealScoreResult;
-  showScore?: boolean;
+  /** Use the short label (product cards) instead of the full sentence. */
+  compact?: boolean;
   className?: string;
 }) {
+  const text = compact ? dealShortLabel[deal.label] : dealLabelText[deal.label];
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${STYLE[deal.label]} ${className}`}
+      className={`border-line bg-surface/85 text-ink inline-flex max-w-full items-center gap-1.5 rounded-full border py-1 pr-2.5 pl-2 text-[11px] leading-none font-semibold whitespace-nowrap shadow-sm backdrop-blur-md ${className}`}
     >
-      <span>{dealLabelText[deal.label]}</span>
-      {showScore && deal.score !== null && deal.label !== "inflated" && (
-        <span className="price opacity-80">· {deal.score}</span>
+      <span
+        className={`size-2 shrink-0 rounded-full ${DOT[deal.label]}`}
+        aria-hidden="true"
+      />
+      <span className="truncate">{text}</span>
+      {deal.score !== null && deal.label !== "inflated" && (
+        <span className="price text-muted">{deal.score}</span>
       )}
     </span>
   );

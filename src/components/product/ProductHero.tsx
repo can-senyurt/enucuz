@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, Info, TriangleAlert } from "lucide-react";
 import { formatMinutesAgo, formatPrice } from "@/lib/format";
 import { buildSmartLabels } from "@/lib/smart-labels";
@@ -19,12 +19,36 @@ const TONE_STYLE = {
  * Interactive top of the product page: colour + size pickers drive the
  * illustration and the store price table.
  */
+const storeNotice = (store: string) =>
+  `${store} bağlantısı demo modunda kapalı. Gerçek veriyle bu düğme seni mağazanın ürün sayfasına götürecek.`;
+
 export function ProductHero({ product }: { product: ProductDetail }) {
   const [color, setColor] = useState(product.colors[0]);
   const [size, setSize] = useState<string | null>(
     product.sizes.length === 1 ? product.sizes[0] : null,
   );
   const [notice, setNotice] = useState<string | null>(null);
+  const [barVisible, setBarVisible] = useState(false);
+  const offersRef = useRef<HTMLElement>(null);
+
+  // The toast disappears by itself after a few seconds.
+  useEffect(() => {
+    if (!notice) return;
+    const timer = setTimeout(() => setNotice(null), 5000);
+    return () => clearTimeout(timer);
+  }, [notice]);
+
+  // Mobile buy bar: shown while the offers list is out of view.
+  useEffect(() => {
+    const el = offersRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setBarVisible(!entry.isIntersecting),
+      { threshold: 0.05 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   const labels = useMemo(
     () => buildSmartLabels(product.deal, product.drop7d),
@@ -61,11 +85,13 @@ export function ProductHero({ product }: { product: ProductDetail }) {
     <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
       {/* Image */}
       <div className="bg-surface border-line relative mx-auto aspect-[4/5] w-full max-w-md overflow-hidden rounded-[2rem] border lg:max-w-none">
-        <ProductImage
-          kind={product.imageKind}
-          color={color}
-          alt={`${product.title}, ${color}`}
-        />
+        <div className="animate-float h-full w-full">
+          <ProductImage
+            kind={product.imageKind}
+            color={color}
+            alt={`${product.title}, ${color}`}
+          />
+        </div>
         <span className="bg-ink/70 text-bg absolute bottom-4 left-4 rounded-full px-3 py-1 text-xs font-medium backdrop-blur">
           Örnek çizim · {color}
         </span>
@@ -74,7 +100,7 @@ export function ProductHero({ product }: { product: ProductDetail }) {
       {/* Details */}
       <div>
         <p className="text-muted text-sm font-medium">{product.brand}</p>
-        <h1 className="mt-1 text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
+        <h1 className="mt-1 text-4xl leading-[1.05] font-semibold tracking-tighter text-balance sm:text-5xl">
           {product.title}
         </h1>
 
@@ -186,7 +212,7 @@ export function ProductHero({ product }: { product: ProductDetail }) {
         </fieldset>
 
         {/* Offers */}
-        <section aria-labelledby="magazalar" className="mt-8">
+        <section ref={offersRef} aria-labelledby="magazalar" className="mt-8">
           <div className="flex items-baseline justify-between gap-3">
             <h2 id="magazalar" className="text-xl font-semibold tracking-tight">
               Mağazalarda fiyat
@@ -248,11 +274,7 @@ export function ProductHero({ product }: { product: ProductDetail }) {
                   <button
                     type="button"
                     disabled={!available}
-                    onClick={() =>
-                      setNotice(
-                        `${offer.store.name} bağlantısı demo modunda kapalı. Gerçek veriyle bu düğme seni mağazanın ürün sayfasına götürecek.`,
-                      )
-                    }
+                    onClick={() => setNotice(storeNotice(offer.store.name))}
                     className={`inline-flex h-11 items-center rounded-full px-5 text-sm font-semibold transition-opacity disabled:cursor-not-allowed disabled:opacity-50 ${
                       isCheapest
                         ? "bg-accent text-on-accent hover:opacity-90"
@@ -266,13 +288,6 @@ export function ProductHero({ product }: { product: ProductDetail }) {
             ))}
           </ul>
 
-          <p
-            role="status"
-            aria-live="polite"
-            className="text-muted mt-3 min-h-5 text-sm"
-          >
-            {notice}
-          </p>
           {best === undefined && (
             <p className="text-warn-text mt-2 text-sm font-medium">
               Seçtiğin bedende şu an stokta mağaza yok. Başka bir beden dene.
@@ -280,6 +295,51 @@ export function ProductHero({ product }: { product: ProductDetail }) {
           )}
         </section>
       </div>
+
+      {/* Toast (announced to screen readers) */}
+      <div
+        role="status"
+        aria-live="polite"
+        className="pointer-events-none fixed inset-x-4 bottom-[calc(6.25rem+env(safe-area-inset-bottom))] z-50 flex justify-center lg:bottom-8"
+      >
+        {notice && (
+          <p className="animate-toast-in bg-ink text-bg pointer-events-auto max-w-sm rounded-2xl px-4 py-3 text-sm shadow-2xl">
+            {notice}
+          </p>
+        )}
+      </div>
+
+      {/* Mobile buy bar: best available price + one tap to the store */}
+      {best && (
+        <div
+          aria-hidden={!barVisible}
+          className={`border-line bg-bg/85 fixed inset-x-0 bottom-0 z-40 border-t px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-xl transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] lg:hidden ${
+            barVisible ? "translate-y-0" : "translate-y-full"
+          }`}
+        >
+          <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
+            <div className="min-w-0">
+              <p className="text-muted text-xs">
+                En ucuz · {best.offer.store.name}
+              </p>
+              <p className="price text-xl leading-tight font-semibold tracking-tight whitespace-nowrap">
+                {formatPrice(best.offer.price)}
+              </p>
+            </div>
+            <button
+              type="button"
+              tabIndex={barVisible ? 0 : -1}
+              onClick={() => setNotice(storeNotice(best.offer.store.name))}
+              className="bg-accent text-on-accent h-12 shrink-0 rounded-full px-6 text-sm font-semibold transition-transform active:scale-95"
+            >
+              Mağazaya Git
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Keeps the last content clear of the buy bar on phones */}
+      <div className="h-16 lg:hidden" aria-hidden="true" />
     </div>
   );
 }

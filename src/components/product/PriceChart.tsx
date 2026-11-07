@@ -137,9 +137,18 @@ export function PriceChart({
             </text>
           </g>
         ))}
-        <path d={geo.area} fill="url(#pulse-fill)" />
         <path
+          key={`area-${range}`}
+          d={geo.area}
+          fill="url(#pulse-fill)"
+          className="animate-fade-up"
+          style={{ "--d": "500ms" } as React.CSSProperties}
+        />
+        <path
+          key={`line-${range}`}
           d={geo.line}
+          pathLength={1}
+          className="draw-line"
           fill="none"
           stroke="var(--accent)"
           strokeWidth="2.5"

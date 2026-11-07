@@ -229,6 +229,7 @@ export function ProductImage({
         r="86"
         fill={shade(fill, 0.78)}
         opacity="0.55"
+        className="dark:opacity-30"
       />
       <ellipse cx="100" cy="222" rx="58" ry="6" fill="#000" opacity="0.08" />
       <Shape kind={kind} fill={fill} />

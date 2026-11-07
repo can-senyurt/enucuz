@@ -1,4 +1,5 @@
 import type { ProductCard as ProductCardData } from "@/types";
+import { Reveal } from "@/components/ui/Reveal";
 import { ProductCard } from "./ProductCard";
 
 export function ProductGrid({
@@ -10,9 +11,12 @@ export function ProductGrid({
 }) {
   return (
     <ul className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
-      {products.map((p) => (
+      {products.map((p, i) => (
         <li key={p.id}>
-          <ProductCard product={p} showDrop={showDrop} />
+          {/* Stagger by column so rows cascade left to right. */}
+          <Reveal delay={(i % 4) * 70} className="h-full">
+            <ProductCard product={p} showDrop={showDrop} />
+          </Reveal>
         </li>
       ))}
     </ul>
@@ -29,13 +33,13 @@ export function ProductGridSkeleton({ count = 8 }: { count?: number }) {
       {Array.from({ length: count }, (_, i) => (
         <li
           key={i}
-          className="border-line bg-surface overflow-hidden rounded-3xl border"
+          className="border-line bg-surface overflow-hidden rounded-[1.75rem] border"
         >
-          <div className="bg-ink/5 aspect-[4/5] animate-pulse" />
-          <div className="space-y-2 p-4">
-            <div className="bg-ink/5 h-3 w-1/3 animate-pulse rounded" />
-            <div className="bg-ink/5 h-4 w-4/5 animate-pulse rounded" />
-            <div className="bg-ink/5 mt-4 h-5 w-1/2 animate-pulse rounded" />
+          <div className="skeleton aspect-[4/5]" />
+          <div className="space-y-2.5 p-4">
+            <div className="skeleton h-3 w-1/3 rounded-full" />
+            <div className="skeleton h-4 w-4/5 rounded-full" />
+            <div className="skeleton mt-4 h-5 w-1/2 rounded-full" />
           </div>
         </li>
       ))}
