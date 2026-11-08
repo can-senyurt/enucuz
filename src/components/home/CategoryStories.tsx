@@ -69,7 +69,8 @@ function Circle({
     >
       {/* Gap between ring and picture, as on Instagram. */}
       <span className="bg-bg block rounded-full p-[3px]">
-        {/* The picture is cut so it fills the circle edge to edge. */}
+        {/* The picture is cut so it fills the circle edge to edge. It is already a
+            small 432 px WebP, so it is served as is (no stale image-optimizer cache). */}
         <span
           className={`${story.tint} relative block size-[4.5rem] overflow-hidden rounded-full`}
         >
@@ -82,6 +83,7 @@ function Circle({
             alt=""
             fill
             sizes="72px"
+            unoptimized
             draggable={false}
             loading={eager ? "eager" : "lazy"}
             className="object-cover select-none"

@@ -1,4 +1,4 @@
-import sys, math
+import sys, math, os
 from PIL import Image, ImageDraw, ImageFilter
 import numpy as np
 from scipy import ndimage as ndi
@@ -7,6 +7,12 @@ import cv2
 SRC = sys.argv[1]
 OUT = sys.argv[2]
 SIZE = 432          # final square size (72 css px x 6)
+PEEL = 5
+SMOOTH_BOTTOM = {'kadin', 'kitap', 'erkek'}
+GRAD = 8
+STRIP_H = 9
+STRIP_MIN = 196
+NO_STRIP = {'elektronik', 'kitap', 'kadin', 'ev'}
 FIT = 0.985         # how much of the circle the icon may use
 
 im = Image.open(SRC).convert('RGBA')
@@ -22,7 +28,9 @@ def band(sl):
 comps.sort(key=lambda c: (band(c[1]), c[1][1].start))
 names = ['erkek','kadin','anne-cocuk','ev','supermarket','kozmetik','saat','elektronik','spor','kitap','otomobil']
 
-def cut(idx, sl):
+PEEL_ICONS = {'supermarket', 'kozmetik', 'saat', 'elektronik', 'spor', 'otomobil', 'erkek'}
+
+def cut(idx, sl, name):
     y0, y1 = sl[0].start - 6, sl[0].stop + 6
     x0, x1 = sl[1].start - 6, sl[1].stop + 6
     crop = A[y0:y1, x0:x1].copy()
@@ -39,23 +47,63 @@ def cut(idx, sl):
     seed &= cand
     plat, _ = ndi.label(cand)
     ids = np.unique(plat[seed]); ids = ids[ids > 0]
-    pm = ndi.binary_dilation(np.isin(plat, ids), iterations=2)
+    pm0 = np.isin(plat, ids)
+    pm = ndi.binary_dilation(pm0, iterations=2)
+    # the soft gradient right under an object is darker than the flat floor:
+    # claim the grey-ish pixels within a few pixels of the floor as well
+    grayish = (mn >= 140) & ((mx - mn) <= 26)
+    g_it = 16 if name == 'otomobil' else GRAD
+    if name == 'otomobil':
+        grayish = (mn >= 100) & ((mx - mn) <= 26)
+    pm = pm | (ndi.binary_dilation(pm0, iterations=g_it) & grayish)
     keep = (a >= 150) & (~pm)
     l2, n2 = ndi.label(keep)
     sz = ndi.sum(keep, l2, range(1, n2 + 1))
     good = [i + 1 for i, s in enumerate(sz) if s > 0.03 * sz.max()]
     keep = np.isin(l2, good)
+    # peel thin pale wisps (leftover floor shadow) that touch the outside
+    pl = (mn >= 200) & ((mx - mn) <= 20)
+    yy, xx = np.ogrid[-PEEL:PEEL + 1, -PEEL:PEEL + 1]
+    disk = (xx * xx + yy * yy) <= PEEL * PEEL
+    thin = pl & ~ndi.binary_opening(pl, structure=disk) & keep
+    if name not in PEEL_ICONS:
+        thin = thin & False
+    for _ in range(3):
+        reach = ndi.binary_propagation(~keep, mask=(thin | ~keep))
+        keep = keep & ~(reach & thin)
+        thin = thin & keep
+    # also peel thin horizontal strips of pale floor shadow (thin in height)
+    if name not in NO_STRIP:
+        plv = (mn >= STRIP_MIN) & ((mx - mn) <= 22)
+        vopen = ndi.binary_opening(plv, structure=np.ones((STRIP_H, 1), bool))
+        thin_v = plv & ~vopen & keep
+        for _ in range(4):
+            reach = ndi.binary_propagation(~keep, mask=(thin_v | ~keep))
+            keep = keep & ~(reach & thin_v)
+            thin_v = thin_v & keep
+    l3, n3 = ndi.label(keep)
+    sz3 = ndi.sum(keep, l3, range(1, n3 + 1))
+    keep = np.isin(l3, [i + 1 for i, v in enumerate(sz3) if v > 0.03 * sz3.max()])
     filled = ndi.binary_fill_holes(keep)
     hole_lab, hn = ndi.label(filled & ~keep)
     if hn:
         hs = ndi.sum(filled & ~keep, hole_lab, range(1, hn + 1))
         small = [i + 1 for i, v in enumerate(hs) if v < 250]
         keep = keep | np.isin(hole_lab, small)
+    if name in SMOOTH_BOTTOM:
+        ys2 = np.where(keep.any(1))[0]
+        cut_y = ys2.max() - int((ys2.max() - ys2.min()) * 0.2)
+        yy2, xx2 = np.ogrid[-3:4, -3:4]
+        opened = ndi.binary_opening(keep, structure=(xx2 * xx2 + yy2 * yy2) <= 9)
+        keep[cut_y:] = opened[cut_y:]
+        l4, n4 = ndi.label(keep)
+        sz4 = ndi.sum(keep, l4, range(1, n4 + 1))
+        keep = np.isin(l4, [i + 1 for i, v in enumerate(sz4) if v > 0.03 * sz4.max()])
     soft = ndi.gaussian_filter(keep.astype(np.float32), 0.7)
     alpha = np.clip(soft * 255, 0, 255)
     return Image.fromarray(np.dstack([rgb, alpha]).astype(np.uint8), 'RGBA')
 
-icons = {name: cut(idx, sl) for (idx, sl), name in zip(comps, names)}
+icons = {name: cut(idx, sl, name) for (idx, sl), name in zip(comps, names)}
 
 # ---------------------------------------------------------------- faces
 SS = 4
@@ -144,13 +192,15 @@ def add_face(img, **kw):
 FACES = {
  'erkek':  [dict(eyes=((127, 119), (176, 119)), mouth=(151.5, 150, 17, 11), nose=(151.5, 137), eye_rx=5.0, eye_ry=6.4)],
  'kadin':  [dict(eyes=((109, 109), (151, 109)), mouth=(130, 140, 15, 10), nose=(130, 127), eye_rx=4.8, eye_ry=6.2)],
- 'anne-cocuk': [
-    dict(eyes=((92, 119), (121, 119)), mouth=(106, 142, 11, 7.5), nose=(106, 131), eye_rx=3.6, eye_ry=4.6),
-    dict(eyes=((169, 138), (196, 138)), mouth=(182, 157, 10, 7), nose=(182, 148), eye_rx=3.4, eye_ry=4.4)],
 }
 for k, lst in FACES.items():
     for f in lst:
         icons[k] = add_face(icons[k], **f)
+
+# ---- anne-cocuk: Microsoft Fluent Emoji 3D (MIT) "woman feeding baby", light skin
+FLUENT = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'fluent-woman-baby.webp')
+if os.path.exists(FLUENT):
+    icons['anne-cocuk'] = Image.open(FLUENT).convert('RGBA')
 
 # ------------------------------------------------- car + motorcycle layout
 car_full = icons['otomobil']
@@ -168,6 +218,24 @@ left = Image.fromarray(arr.copy()); right = Image.fromarray(arr.copy())
 la = np.array(left); la[:, split:, 3] = 0; left = Image.fromarray(la)
 ra = np.array(right); ra[:, :split, 3] = 0; right = Image.fromarray(ra)
 car = tight(left); moto = tight(right)
+
+def drop_grey_shadow(img):
+    arr3 = np.array(img).astype(np.int32)
+    rgb3 = arr3[..., :3]; a3 = arr3[..., 3]
+    lum3 = rgb3.mean(-1); chroma3 = rgb3.max(-1) - rgb3.min(-1)
+    g3 = (chroma3 <= 24) & (lum3 >= 110) & (lum3 <= 245)
+    solid = a3 >= 128
+    reach = ndi.binary_propagation(~solid, mask=(g3 | ~solid))
+    kill = ndi.binary_dilation(reach & g3, iterations=1) & g3
+    solid2 = solid & ~kill
+    l5, n5 = ndi.label(solid2)
+    sz5 = ndi.sum(solid2, l5, range(1, n5 + 1))
+    solid2 = np.isin(l5, [i + 1 for i, v in enumerate(sz5) if v > 0.05 * sz5.max()])
+    soft = ndi.gaussian_filter(solid2.astype(np.float32), 0.7)
+    out = np.dstack([rgb3, np.clip(soft * 255, 0, 255)]).astype(np.uint8)
+    return Image.fromarray(out, 'RGBA')
+
+car = drop_grey_shadow(car)
 cs, ms = 1.32, 1.42
 car = car.resize((int(car.width * cs), int(car.height * cs)), Image.LANCZOS)
 moto = moto.resize((int(moto.width * ms), int(moto.height * ms)), Image.LANCZOS)
