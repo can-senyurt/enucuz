@@ -75,10 +75,13 @@ function Highlight({ text, query }: { text: string; query: string }) {
 export function SearchBar({
   defaultValue = "",
   variant = "hero",
+  placeholder,
   onNavigate,
 }: {
   defaultValue?: string;
   variant?: Variant;
+  /** Overrides the default hint text (e.g. on the home page). */
+  placeholder?: string;
   /** Called when a suggestion is chosen or the form is submitted (e.g. to close the menu). */
   onNavigate?: () => void;
 }) {
@@ -550,7 +553,9 @@ export function SearchBar({
           aria-controls={listId}
           aria-autocomplete="list"
           aria-activedescendant={showList ? activeId : undefined}
-          placeholder={isHero ? "Ne arıyorsun?" : "EnUcuz'da ara"}
+          placeholder={
+            placeholder ?? (isHero ? "Ne arıyorsun?" : "EnUcuz'da ara")
+          }
           autoComplete="off"
           autoCorrect="off"
           spellCheck={false}

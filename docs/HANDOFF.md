@@ -52,6 +52,15 @@ scripts/qa/         Playwright/axe denetim betikleri (README'ye bak)
 
 Özellikler: 40 kurgusal ürün/5 kurgusal mağaza/11 kurgusal marka, 90 günlük deterministik fiyat geçmişi, İndirim Skoru + şişirilmiş indirim tespiti, arama + filtre + sıralama + sayfalama, ürün sayfası (fiyat grafiği 30/90 gün, akıllı etiketler), kategori ve fırsatlar sayfaları, apple.com tarzı sol menü, başa dön düğmesi (ilerleme halkalı), arama önerileri (`/api/oner`), koyu mod, "Demo veriler" bandı.
 
+### Ana sayfa üstü (oturum 3'te yenilendi)
+
+- Hero artık: arama çubuğu (yazı "En uygun ürünler?") → en çok aranan 6 çip (`config.ts` `popularSearches`, şimdilik tahmini sıra; Faz 4'te gerçek sayımdan) → **kampanya kaydırıcısı** → **hikaye yuvarlakları**. Başlık/açıklama metni ve "Bugün N üründe gerçek indirim" kutusu kaldırıldı (görünmez `h1` duruyor).
+- Header: arama simgesi yerine Favoriler + Giriş düğmeleri (`HeaderActions.tsx`); basınca "çok yakında" notu çıkar (üyelik Faz 5).
+- `components/home/HeroCarousel.tsx` + `lib/home-banners.ts`: 12 kampanya, ~5,5 sn'de bir kendiliğinden geçer, yumuşak çapraz geçiş + yavaş yakınlaşma, Apple tarzı nokta/ilerleme hapı, duraklat düğmesi; fare üstünde/odakta/parmak basılıyken/ekran dışında/`prefers-reduced-motion` iken durur; kaydırma (swipe), ok tuşları ve ok düğmeleri var. Her slaytın bağlantısı var olan ve ürünü olan bir sayfaya gider.
+- Kampanya fotoğrafları `public/banners/` (Pexels, lisans notu ve kaynak numaraları orada `README.md`). 16:9, 1280×720; sol tarafı metin için yumuşak renk geçişiyle genişletilmiş.
+- `components/home/CategoryStories.tsx`: Instagram hikayesi gibi 11 yuvarlak kategori; ikonlar 3D WebP (`public/categories/`, kaynak ve üretim betiği `design-src/category-icons/`, anne-çocuk ikonu Microsoft Fluent Emoji 3D, MIT). Yalnızca Erkek/Kadın/Anne & Çocuk/Saat & Aksesuar gerçek kategoriye gider; diğerleri "çok yakında" notu gösterir (yeni kategoriler Faz 7).
+- Ortam notu: Pexels'e erişim için ortamın ağ izin listesine `www.pexels.com` ve `images.pexels.com` eklendi (arama sayfaları bot korumalı, yalnızca görsel CDN'i açık).
+
 ## 5. Önemli kararlar
 
 - **Veri kurgusal** (CLAUDE.md Bölüm 9): sahte mağaza/marka adları, ürün görselleri SVG çizim (`ProductImage`), fiyatlar uydurma. İstisna: proje sahibinin verdiği 2 örnek fotoğraf (aşağıda). Demo bandı `DATA_SOURCE` `mock` iken görünür (`isDemoData` in `config.ts`).
