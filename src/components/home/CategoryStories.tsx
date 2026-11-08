@@ -7,12 +7,12 @@ import {
   type PointerEvent,
   type MouseEvent,
 } from "react";
+import Image from "next/image";
 import Link from "next/link";
-import { CategoryArt, type CategoryArtKey } from "./CategoryArt";
 
 /**
  * Round, story-style category row (like the top of Instagram): a soft ring,
- * a vector symbol and the name below. The row glides sideways with the finger
+ * a 3D picture (public/categories) and the name below. The row glides sideways with the finger
  * on a phone and can be dragged with the mouse on a computer.
  *
  * `slug` is set only for categories that already have products; the others
@@ -21,25 +21,46 @@ import { CategoryArt, type CategoryArtKey } from "./CategoryArt";
 
 interface Story {
   name: string;
-  art: CategoryArtKey;
+  /** File name in public/categories (432 px square WebP, transparent). */
+  icon: string;
+  /** Soft background of the circle, built only from palette tokens. */
+  tint: string;
   slug?: string;
 }
 
 const stories: Story[] = [
-  { name: "Erkek", art: "erkek", slug: "erkek" },
-  { name: "Kadın", art: "kadin", slug: "kadin" },
-  { name: "Anne & Çocuk", art: "anne-cocuk", slug: "cocuk" },
-  { name: "Ev & Mobilya", art: "ev" },
-  { name: "Süpermarket", art: "supermarket" },
-  { name: "Kozmetik", art: "kozmetik" },
-  { name: "Saat & Aksesuar", art: "saat", slug: "aksesuar" },
-  { name: "Elektronik", art: "elektronik" },
-  { name: "Spor & Outdoor", art: "spor" },
-  { name: "Kitap & Kırtasiye", art: "kitap" },
-  { name: "Otomobil & Motosiklet", art: "otomobil" },
+  { name: "Erkek", icon: "erkek", tint: "bg-mint", slug: "erkek" },
+  { name: "Kadın", icon: "kadin", tint: "bg-sage/35", slug: "kadin" },
+  {
+    name: "Anne & Çocuk",
+    icon: "anne-cocuk",
+    tint: "bg-warn/20",
+    slug: "cocuk",
+  },
+  { name: "Ev & Mobilya", icon: "ev", tint: "bg-mint" },
+  { name: "Süpermarket", icon: "supermarket", tint: "bg-deal/20" },
+  { name: "Kozmetik", icon: "kozmetik", tint: "bg-sage/35" },
+  {
+    name: "Saat & Aksesuar",
+    icon: "saat",
+    tint: "bg-accent/15",
+    slug: "aksesuar",
+  },
+  { name: "Elektronik", icon: "elektronik", tint: "bg-mint" },
+  { name: "Spor & Outdoor", icon: "spor", tint: "bg-warn/20" },
+  { name: "Kitap & Kırtasiye", icon: "kitap", tint: "bg-deal/20" },
+  { name: "Otomobil & Motosiklet", icon: "otomobil", tint: "bg-sage/35" },
 ];
 
-function Circle({ story, live }: { story: Story; live: boolean }) {
+function Circle({
+  story,
+  live,
+  eager,
+}: {
+  story: Story;
+  live: boolean;
+  eager: boolean;
+}) {
   return (
     <span
       className={`block rounded-full p-[3px] transition-transform duration-300 ease-out group-active:scale-95 motion-safe:group-hover:scale-[1.04] ${
@@ -48,8 +69,23 @@ function Circle({ story, live }: { story: Story; live: boolean }) {
     >
       {/* Gap between ring and picture, as on Instagram. */}
       <span className="bg-bg block rounded-full p-[3px]">
-        <span className="block size-[4.5rem] overflow-hidden rounded-full">
-          <CategoryArt name={story.art} />
+        {/* The picture is cut so it fills the circle edge to edge. */}
+        <span
+          className={`${story.tint} relative block size-[4.5rem] overflow-hidden rounded-full`}
+        >
+          <span
+            className="absolute inset-0 bg-gradient-to-b from-white/30 to-transparent"
+            aria-hidden="true"
+          />
+          <Image
+            src={`/categories/${story.icon}.webp`}
+            alt=""
+            fill
+            sizes="72px"
+            draggable={false}
+            loading={eager ? "eager" : "lazy"}
+            className="object-cover select-none"
+          />
         </span>
       </span>
     </span>
@@ -122,7 +158,7 @@ export function CategoryStories() {
         }`}
       >
         <ul className="mx-auto flex w-max gap-3.5 sm:gap-4">
-          {stories.map((story) => (
+          {stories.map((story, i) => (
             <li key={story.name} className="snap-start scroll-mx-4">
               {story.slug ? (
                 <Link
@@ -130,7 +166,7 @@ export function CategoryStories() {
                   draggable={false}
                   className="group block min-h-11 rounded-2xl"
                 >
-                  <Circle story={story} live />
+                  <Circle story={story} live eager={i < 5} />
                   <span className={labelClass}>{story.name}</span>
                 </Link>
               ) : (
@@ -141,7 +177,7 @@ export function CategoryStories() {
                   }
                   className="group block min-h-11 rounded-2xl"
                 >
-                  <Circle story={story} live={false} />
+                  <Circle story={story} live={false} eager={i < 5} />
                   <span className={`${labelClass} text-muted`}>
                     {story.name}
                   </span>
