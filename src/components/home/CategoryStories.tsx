@@ -8,20 +8,7 @@ import {
   type MouseEvent,
 } from "react";
 import Link from "next/link";
-import {
-  Baby,
-  BookOpen,
-  Car,
-  Dumbbell,
-  Handbag,
-  Shirt,
-  ShoppingBasket,
-  Smartphone,
-  SprayCan,
-  Sofa,
-  Watch,
-  type LucideIcon,
-} from "lucide-react";
+import { CategoryArt, type CategoryArtKey } from "./CategoryArt";
 
 /**
  * Round, story-style category row (like the top of Instagram): a soft ring,
@@ -34,28 +21,25 @@ import {
 
 interface Story {
   name: string;
-  Icon: LucideIcon;
-  /** Soft background of the circle, built only from palette tokens. */
-  tint: string;
+  art: CategoryArtKey;
   slug?: string;
 }
 
 const stories: Story[] = [
-  { name: "Erkek", Icon: Shirt, tint: "bg-mint", slug: "erkek" },
-  { name: "Kadın", Icon: Handbag, tint: "bg-sage/35", slug: "kadin" },
-  { name: "Anne & Çocuk", Icon: Baby, tint: "bg-warn/20", slug: "cocuk" },
-  { name: "Ev & Mobilya", Icon: Sofa, tint: "bg-accent/15" },
-  { name: "Süpermarket", Icon: ShoppingBasket, tint: "bg-deal/20" },
-  { name: "Kozmetik", Icon: SprayCan, tint: "bg-sage/35" },
-  { name: "Saat & Aksesuar", Icon: Watch, tint: "bg-mint", slug: "aksesuar" },
-  { name: "Elektronik", Icon: Smartphone, tint: "bg-accent/15" },
-  { name: "Spor & Outdoor", Icon: Dumbbell, tint: "bg-deal/20" },
-  { name: "Kitap & Kırtasiye", Icon: BookOpen, tint: "bg-warn/20" },
-  { name: "Otomobil & Motosiklet", Icon: Car, tint: "bg-sage/35" },
+  { name: "Erkek", art: "erkek", slug: "erkek" },
+  { name: "Kadın", art: "kadin", slug: "kadin" },
+  { name: "Anne & Çocuk", art: "anne-cocuk", slug: "cocuk" },
+  { name: "Ev & Mobilya", art: "ev" },
+  { name: "Süpermarket", art: "supermarket" },
+  { name: "Kozmetik", art: "kozmetik" },
+  { name: "Saat & Aksesuar", art: "saat", slug: "aksesuar" },
+  { name: "Elektronik", art: "elektronik" },
+  { name: "Spor & Outdoor", art: "spor" },
+  { name: "Kitap & Kırtasiye", art: "kitap" },
+  { name: "Otomobil & Motosiklet", art: "otomobil" },
 ];
 
 function Circle({ story, live }: { story: Story; live: boolean }) {
-  const { Icon, tint } = story;
   return (
     <span
       className={`block rounded-full p-[3px] transition-transform duration-300 ease-out group-active:scale-95 motion-safe:group-hover:scale-[1.04] ${
@@ -64,14 +48,8 @@ function Circle({ story, live }: { story: Story; live: boolean }) {
     >
       {/* Gap between ring and picture, as on Instagram. */}
       <span className="bg-bg block rounded-full p-[3px]">
-        <span
-          className={`${tint} text-accent-text flex size-[4.25rem] items-center justify-center rounded-full sm:size-[4.5rem]`}
-        >
-          <Icon
-            className="size-8 sm:size-9"
-            strokeWidth={1.6}
-            aria-hidden="true"
-          />
+        <span className="block size-[4.5rem] overflow-hidden rounded-full">
+          <CategoryArt name={story.art} />
         </span>
       </span>
     </span>

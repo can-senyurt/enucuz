@@ -3,8 +3,10 @@ import { ArrowRight } from "lucide-react";
 import { getRepository } from "@/data/repository";
 import { siteConfig } from "@/lib/config";
 import { formatPercent } from "@/lib/format";
+import { homeBanners } from "@/lib/home-banners";
 import type { DealLabel, DealScoreResult } from "@/types";
 import { CategoryStories } from "@/components/home/CategoryStories";
+import { HeroCarousel } from "@/components/home/HeroCarousel";
 import { ProductCard } from "@/components/product/ProductCard";
 import { ProductGrid } from "@/components/product/ProductGrid";
 import { DealRing } from "@/components/ui/DealRing";
@@ -52,8 +54,7 @@ const explainers: {
 
 export default async function Home() {
   const repo = getRepository();
-  const [dealCount, deals, drops, index] = await Promise.all([
-    repo.getDealCount(),
+  const [deals, drops, index] = await Promise.all([
     repo.getDeals({ limit: 8 }),
     repo.getTopDrops({ limit: 8 }),
     repo.getCategoryDealIndex(),
@@ -87,29 +88,17 @@ export default async function Home() {
             ))}
           </nav>
 
-          <Link
-            href="/firsatlar"
-            className="border-line bg-surface group mt-6 inline-flex min-h-11 max-w-full items-center gap-2.5 rounded-full border px-4 py-2 text-sm shadow-sm"
-          >
-            <span
-              className="relative flex size-2.5 shrink-0"
-              aria-hidden="true"
-            >
-              <span className="bg-deal absolute inline-flex size-full rounded-full opacity-60 motion-safe:animate-ping" />
-              <span className="bg-deal relative inline-flex size-2.5 rounded-full" />
-            </span>
-            <span className="text-balance">
-              Bugün <strong className="price font-semibold">{dealCount}</strong>{" "}
-              üründe gerçek indirim var
-            </span>
-            <ArrowRight
-              className="text-muted size-4 shrink-0 transition-transform duration-300 group-hover:translate-x-0.5"
-              aria-hidden="true"
-            />
-          </Link>
+          {/* Campaign banner: moves by itself, calmly */}
+          <div className="mt-6 w-full text-left sm:mt-8">
+            <HeroCarousel banners={homeBanners} />
+          </div>
 
           {/* Category story circles */}
-          <div aria-label="Kategoriler" role="region" className="mt-9 w-full">
+          <div
+            aria-label="Kategoriler"
+            role="region"
+            className="mt-6 w-full sm:mt-8"
+          >
             <CategoryStories />
           </div>
         </div>

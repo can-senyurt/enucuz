@@ -183,6 +183,18 @@ body {
 .animate-float {
   animation: float 7s ease-in-out infinite;
 }
+/* Fills the active dot of the home banner while its slide is shown. */
+@keyframes banner-progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+.animate-banner-progress {
+  animation: banner-progress 5500ms linear both;
+}
 .animate-toast-in {
   animation: toast-in 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
